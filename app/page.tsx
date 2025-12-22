@@ -14,8 +14,7 @@ export default function Home() {
     baseUrl: string;
     participantUrl: string;
     adminUrl: string;
-    isLocalNetwork: boolean;
-    detectedRealIp: string | null;
+    isProduction: boolean;
   } | null>(null);
 
   // Get server info on mount
