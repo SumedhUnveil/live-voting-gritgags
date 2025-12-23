@@ -88,22 +88,22 @@ const io = socketIo(server, {
 app.use(cors(corsOptions));
 app.use(express.json());
 
-// Serve static frontend files
-app.use(express.static(path.join(__dirname, "../out")));
 
-// Serve the main page
+
+// Health check endpoint
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "../out/index.html"));
-});
-
-// Serve participant page
-app.get("/participant", (req, res) => {
-  res.sendFile(path.join(__dirname, "../out/participant/index.html"));
-});
-
-// Serve admin page
-app.get("/admin", (req, res) => {
-  res.sendFile(path.join(__dirname, "../out/admin/index.html"));
+  res.json({
+    status: "ok",
+    message: "Live Voting Backend API",
+    timestamp: new Date().toISOString(),
+    endpoints: {
+      categories: "/api/categories",
+      results: "/api/results/:categoryId",
+      participants: "/api/participants",
+      reset: "/api/reset",
+      serverInfo: "/api/server-info",
+    },
+  });
 });
 
 // Database setup
