@@ -18,8 +18,8 @@ body {
   font-family: 'Outfit', sans-serif;
   @apply bg-slate-50 text-slate-900 antialiased;
   background: radial-gradient(circle at top right, rgba(126, 189, 65, 0.05), transparent),
-              radial-gradient(circle at bottom left, rgba(126, 189, 65, 0.05), transparent),
-              #f8fafc;
+    radial-gradient(circle at bottom left, rgba(126, 189, 65, 0.05), transparent),
+    #f8fafc;
 }
 
 /* Modern Card Style */
@@ -63,9 +63,17 @@ body {
 
 /* Animations */
 @keyframes float {
-  0% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
-  100% { transform: translateY(0px); }
+  0% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
+
+  100% {
+    transform: translateY(0px);
+  }
 }
 
 .animate-float {
@@ -73,8 +81,15 @@ body {
 }
 
 @keyframes slide-up {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .animate-slide-up {
@@ -82,8 +97,15 @@ body {
 }
 
 @keyframes scale-in {
-  from { opacity: 0; transform: scale(0.9); }
-  to { opacity: 1; transform: scale(1); }
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 .animate-scale-in {
@@ -101,7 +123,22 @@ body {
 
 /* Mobile Touch Utilities */
 .touch-ripple {
-  @apply active:after:content-[''] active:after:absolute active:after:inset-0 active:after:bg-black/5 active:after:rounded-inherit;
+  position: relative;
+  overflow: hidden;
+}
+
+.touch-ripple::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: inherit;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.touch-ripple:active::after {
+  opacity: 1;
 }
 
 /* Scroll Smoothing */
