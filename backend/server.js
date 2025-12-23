@@ -262,10 +262,10 @@ function loadAwardsFromCSV() {
 
 // Store active voting session with enhanced state
 let currentVotingSession = null;
-let votingTimer = null;
 let participants = new Map();
 let categories = new Map(); // Track category states
 let participantVotes = new Map(); // Track participant votes per category
+let deviceVotes = new Map(); // Track votes by device ID to prevent refresh-based duplicate voting
 let connectionStats = {
   totalConnections: 0,
   peakConnections: 0,
@@ -471,8 +471,21 @@ io.on("connection", (socket) => {
       return;
     }
 
-    const { categoryId, option } = data;
+    const { categoryId, option, deviceId } = data;
     const participantId = socket.participantId;
+
+    // Validate device ID
+    if (!deviceId) {
+      socket.emit("error", "Device identification required");
+      return;
+    }
+
+    // Check if this device already voted for this category (prevents refresh-based duplicate voting)
+    const deviceVoteKey = `${deviceId}-${categoryId}`;
+    if (deviceVotes.has(deviceVoteKey)) {
+      socket.emit("error", "This device has already voted for this category");
+      return;
+    }
 
     // Check if participant already voted for this category
     const voteKey = `${participantId}-${categoryId}`;
@@ -481,11 +494,20 @@ io.on("connection", (socket) => {
       return;
     }
 
-    // Record the vote
+    // Record the vote for both participant and device
     participantVotes.set(voteKey, {
       categoryId,
       option,
       participantId,
+      deviceId,
+      timestamp: Date.now(),
+    });
+
+    deviceVotes.set(deviceVoteKey, {
+      categoryId,
+      option,
+      participantId,
+      deviceId,
       timestamp: Date.now(),
     });
 
@@ -560,12 +582,7 @@ io.on("connection", (socket) => {
           return;
         }
 
-        // Clear previous session if any
-        if (votingTimer) {
-          clearTimeout(votingTimer);
-        }
-
-        // Start new session with enhanced state
+        // Start new session with admin-controlled state (no timers)
         currentVotingSession = {
           id: uuidv4(),
           categoryId: category.id,
@@ -573,7 +590,7 @@ io.on("connection", (socket) => {
           description: category.description,
           active: true,
           startTime: Date.now(),
-          endTime: null, // No automatic timer - admin controlled
+          endTime: null, // Admin manually ends voting
           results: {},
           options: category.options
             ? JSON.parse(category.options)

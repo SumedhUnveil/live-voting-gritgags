@@ -567,12 +567,12 @@ export default function AdminPage() {
                   </div>
 
                   <div className="flex flex-col items-center justify-center gap-1 bg-white shadow-xl rounded-3xl p-6 min-w-[180px] border border-slate-100">
-                    <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Time Lapsed</span>
+                    <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Active Voters</span>
                     <span className="text-5xl font-black text-gritfeat-green font-mono tracking-tighter">
-                      {currentSession.startTime ? formatTime(Math.floor((Date.now() - currentSession.startTime) / 1000)) : "0:00"}
+                      {participantCount}
                     </span>
                     <div className="flex items-center gap-2 mt-2 text-slate-400 font-bold text-sm">
-                      <Users className="w-4 h-4" /> {participantCount} Active
+                      <Users className="w-4 h-4" /> Participants
                     </div>
                   </div>
                 </div>

@@ -13,6 +13,7 @@ import {
   ParticipantStateDebug,
 } from "../utils/participantStateManager";
 import { getServerUrl } from "../utils/getServerUrl";
+import { getDeviceId } from "../utils/deviceId";
 
 // Utility function to safely log objects
 const safeLog = (message: string, data?: any) => {
@@ -71,6 +72,7 @@ export default function ParticipantPage() {
   const [voteValidationError, setVoteValidationError] = useState<string>("");
   const [sessionComplete, setSessionComplete] = useState<boolean>(false);
   const [nextCategoryTitle, setNextCategoryTitle] = useState<string>("");
+  const [deviceId, setDeviceId] = useState<string>("");
 
   const createSocketConnection = useCallback(() => {
     const serverUrl = getServerUrl();
@@ -374,11 +376,16 @@ export default function ParticipantPage() {
     return newSocket;
   }, [participantId, stateManager, votingSession]);
 
-  // Initialize participant ID and state manager
+  // Initialize participant ID, device ID, and state manager
   useEffect(() => {
     // Generate unique participant ID
     const id = Math.random().toString(36).substring(2, 11);
     setParticipantId(id);
+
+    // Get or generate device ID for vote tracking
+    const devId = getDeviceId();
+    setDeviceId(devId);
+    console.log('Device ID initialized:', devId);
 
     // Initialize state manager
     const manager = getParticipantStateManager(id);
@@ -558,12 +565,13 @@ export default function ParticipantPage() {
     socket.emit("submit-vote", {
       categoryId: votingSession.categoryId,
       option: pendingVote,
+      deviceId: deviceId, // Include device ID to prevent refresh-based duplicate voting
     });
 
     setShowConfirmation(false);
     setPendingVote("");
     setVoteValidationError("");
-  }, [socket, votingSession, pendingVote, stateManager]);
+  }, [socket, votingSession, pendingVote, stateManager, deviceId]);
 
   const handleVoteCancel = () => {
     setShowConfirmation(false);
@@ -754,12 +762,12 @@ export default function ParticipantPage() {
           {votingSession.active && (
             <div className="flex items-center justify-center gap-4 mt-6">
               <div className="glass-card px-4 py-2 flex items-center gap-2">
-                <Clock className="w-4 h-4 text-gritfeat-green" />
-                <span className="font-black text-slate-700 font-mono text-lg">{formatTime(timeLeft)}</span>
+                <Users className="w-4 h-4 text-gritfeat-green" />
+                <span className="font-bold text-slate-700">{participantCount} Voting</span>
               </div>
               <div className="glass-card px-4 py-2 flex items-center gap-2">
-                <Users className="w-4 h-4 text-gritfeat-green" />
-                <span className="font-bold text-slate-700">{participantCount}</span>
+                <Vote className="w-4 h-4 text-gritfeat-green" />
+                <span className="font-bold text-gritfeat-green">Live Now</span>
               </div>
             </div>
           )}
