@@ -14,6 +14,12 @@ module.exports = {
           600: "#2563eb",
           700: "#1d4ed8",
         },
+        gritfeat: {
+          green: "#7ebd41",
+          "green-light": "#9ed566",
+          "green-dark": "#659a35",
+          black: "#4c4c4c",
+        }
       },
     },
   },

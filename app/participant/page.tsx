@@ -709,8 +709,8 @@ export default function ParticipantPage() {
             <div className="flex items-center justify-center">
               <div
                 className={`flex items-center text-xs px-3 py-1.5 rounded-full transition-colors ${isConnected
-                    ? "bg-green-100 text-green-700"
-                    : "bg-red-100 text-red-700"
+                  ? "bg-green-100 text-green-700"
+                  : "bg-red-100 text-red-700"
                   }`}
               >
                 <div
@@ -727,306 +727,301 @@ export default function ParticipantPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-2 sm:p-4">
-      <div className="max-w-2xl mx-auto">
+    <div className="min-h-screen pb-12 pt-6">
+      <div className="max-w-xl mx-auto px-4">
         {/* Logo */}
-        <div className="text-center mb-6">
-          <div className="flex justify-center mb-4">
+        <div className="flex justify-center mb-8 animate-float">
+          <div className="bg-white p-3 rounded-2xl shadow-xl border border-white/50">
             <Image
               src="/assets/gf-logo.svg"
               alt="GritFeat Logo"
-              width={100}
-              height={40}
+              width={120}
+              height={48}
               className="h-10 w-auto"
             />
           </div>
         </div>
 
         {/* Header */}
-        <div className="text-center mb-4 sm:mb-6 md:mb-8">
-          <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-[#4c4c4c] mb-2 px-3 sm:px-2 leading-tight">
+        <div className="text-center mb-8 animate-slide-up">
+          <h1 className="text-3xl font-black text-slate-800 mb-3 tracking-tight">
             {votingSession.title}
           </h1>
-          <p className="text-sm sm:text-base md:text-lg text-gray-600 mb-3 sm:mb-4 px-3 sm:px-2 leading-relaxed">
+          <p className="text-slate-500 font-medium leading-relaxed">
             {votingSession.description}
           </p>
 
           {votingSession.active && (
-            <div className="flex flex-col sm:flex-row items-center justify-center space-y-2 sm:space-y-0 sm:space-x-4 text-sm mb-3">
-              <div className="flex items-center text-[#7ebd41] bg-green-50 px-3 py-1.5 rounded-full">
-                <Clock className="w-4 h-4 mr-1.5" />
-                <span className="font-mono font-bold text-base">
-                  {formatTime(timeLeft)}
-                </span>
+            <div className="flex items-center justify-center gap-4 mt-6">
+              <div className="glass-card px-4 py-2 flex items-center gap-2">
+                <Clock className="w-4 h-4 text-gritfeat-green" />
+                <span className="font-black text-slate-700 font-mono text-lg">{formatTime(timeLeft)}</span>
               </div>
-              <div className="flex items-center text-[#4c4c4c] bg-gray-50 px-3 py-1.5 rounded-full">
-                <Users className="w-4 h-4 mr-1.5" />
-                <span>
-                  {participantCount} participant
-                  {participantCount !== 1 ? "s" : ""}
-                </span>
-              </div>
-            </div>
-          )}
-
-          {/* Connection Status */}
-          <div className="flex flex-col sm:flex-row items-center justify-center mt-2 space-y-2 sm:space-y-0 sm:space-x-2">
-            <div
-              className={`flex items-center text-xs px-3 py-1.5 rounded-full transition-colors ${isConnected
-                  ? "bg-green-100 text-green-700"
-                  : "bg-red-100 text-red-700"
-                }`}
-            >
-              <div
-                className={`w-2 h-2 rounded-full mr-2 ${isConnected ? "bg-green-500" : "bg-red-500"
-                  }`}
-              ></div>
-              {isConnected ? "Connected" : "Disconnected"}
-              {!isConnected && connectionAttempts > 0 && (
-                <span className="ml-1">({connectionAttempts})</span>
-              )}
-            </div>
-
-            {!isConnected && (
-              <button
-                onClick={() => socket?.connect()}
-                className="text-xs bg-blue-500 text-white px-3 py-1.5 rounded-full hover:bg-blue-600 transition-colors touch-manipulation active:scale-95"
-              >
-                Reconnect
-              </button>
-            )}
-
-            {/* Debug buttons in development */}
-            {process.env.NODE_ENV === "development" && stateManager && (
-              <>
-                <button
-                  onClick={() => ParticipantStateDebug.logState(stateManager)}
-                  className="text-xs bg-gray-500 text-white px-3 py-1.5 rounded-full hover:bg-gray-600 transition-colors touch-manipulation"
-                >
-                  Debug
-                </button>
-                <button
-                  onClick={() => {
-                    socket?.emit("request-voting-status");
-                    socket?.emit("request-admin-status");
-                  }}
-                  className="text-xs bg-purple-500 text-white px-3 py-1.5 rounded-full hover:bg-purple-600 transition-colors touch-manipulation"
-                >
-                  Refresh
-                </button>
-              </>
-            )}
-          </div>
-
-          {/* Voting State Info */}
-          {stateManager &&
-            votingSession &&
-            stateManager.hasVotedForCategory(votingSession.categoryId) && (
-              <div className="flex items-center justify-center mt-3">
-                <div className="flex items-center text-xs px-3 py-1.5 rounded-full bg-blue-100 text-blue-700">
-                  <CheckCircle className="w-3 h-3 mr-1.5" />
-                  <span>Vote recorded for this category</span>
-                </div>
-              </div>
-            )}
-
-          {/* Debug Info in development */}
-          {process.env.NODE_ENV === "development" && (
-            <div className="flex flex-col items-center justify-center mt-3 space-y-1">
-              <div className="text-xs px-3 py-1 rounded bg-yellow-100 text-yellow-800">
-                Session:{" "}
-                {votingSession
-                  ? `${votingSession.active ? "ACTIVE" : "INACTIVE"} - ${votingSession.title
-                  }`
-                  : "NONE"}
-              </div>
-              <div className="text-xs px-3 py-1 rounded bg-gray-100 text-gray-600">
-                State: {voterState.viewState} | Voted:{" "}
-                {voterState.hasVoted ? "YES" : "NO"}
+              <div className="glass-card px-4 py-2 flex items-center gap-2">
+                <Users className="w-4 h-4 text-gritfeat-green" />
+                <span className="font-bold text-slate-700">{participantCount}</span>
               </div>
             </div>
           )}
         </div>
 
-        {/* Vote Validation Error */}
-        {voteValidationError && (
-          <div className="mb-4 p-4 bg-red-100 border border-red-300 rounded-lg">
-            <p className="text-red-700 text-sm font-medium">
-              {voteValidationError}
+        {/* Connection Status */}
+        <div className="flex flex-col sm:flex-row items-center justify-center mt-2 space-y-2 sm:space-y-0 sm:space-x-2">
+          <div
+            className={`flex items-center text-xs px-3 py-1.5 rounded-full transition-colors ${isConnected
+              ? "bg-green-100 text-green-700"
+              : "bg-red-100 text-red-700"
+              }`}
+          >
+            <div
+              className={`w-2 h-2 rounded-full mr-2 ${isConnected ? "bg-green-500" : "bg-red-500"
+                }`}
+            ></div>
+            {isConnected ? "Connected" : "Disconnected"}
+            {!isConnected && connectionAttempts > 0 && (
+              <span className="ml-1">({connectionAttempts})</span>
+            )}
+          </div>
+
+          {!isConnected && (
+            <button
+              onClick={() => socket?.connect()}
+              className="text-xs bg-blue-500 text-white px-3 py-1.5 rounded-full hover:bg-blue-600 transition-colors touch-manipulation active:scale-95"
+            >
+              Reconnect
+            </button>
+          )}
+
+          {/* Debug buttons in development */}
+          {process.env.NODE_ENV === "development" && stateManager && (
+            <>
+              <button
+                onClick={() => ParticipantStateDebug.logState(stateManager)}
+                className="text-xs bg-gray-500 text-white px-3 py-1.5 rounded-full hover:bg-gray-600 transition-colors touch-manipulation"
+              >
+                Debug
+              </button>
+              <button
+                onClick={() => {
+                  socket?.emit("request-voting-status");
+                  socket?.emit("request-admin-status");
+                }}
+                className="text-xs bg-purple-500 text-white px-3 py-1.5 rounded-full hover:bg-purple-600 transition-colors touch-manipulation"
+              >
+                Refresh
+              </button>
+            </>
+          )}
+        </div>
+
+        {/* Voting State Info */}
+        {stateManager &&
+          votingSession &&
+          stateManager.hasVotedForCategory(votingSession.categoryId) && (
+            <div className="flex items-center justify-center mt-3">
+              <div className="flex items-center text-xs px-3 py-1.5 rounded-full bg-blue-100 text-blue-700">
+                <CheckCircle className="w-3 h-3 mr-1.5" />
+                <span>Vote recorded for this category</span>
+              </div>
+            </div>
+          )}
+
+        {/* Debug Info in development */}
+        {process.env.NODE_ENV === "development" && (
+          <div className="flex flex-col items-center justify-center mt-3 space-y-1">
+            <div className="text-xs px-3 py-1 rounded bg-yellow-100 text-yellow-800">
+              Session:{" "}
+              {votingSession
+                ? `${votingSession.active ? "ACTIVE" : "INACTIVE"} - ${votingSession.title
+                }`
+                : "NONE"}
+            </div>
+            <div className="text-xs px-3 py-1 rounded bg-gray-100 text-gray-600">
+              State: {voterState.viewState} | Voted:{" "}
+              {voterState.hasVoted ? "YES" : "NO"}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Vote Validation Error */}
+      {voteValidationError && (
+        <div className="mb-4 p-4 bg-red-100 border border-red-300 rounded-lg">
+          <p className="text-red-700 text-sm font-medium">
+            {voteValidationError}
+          </p>
+        </div>
+      )}
+
+      {/* Voting Options */}
+      {votingSession.active && !voterState.hasVoted && (
+        <div className="space-y-3 sm:space-y-4 mb-6 sm:mb-8">
+          <h2 className="text-lg sm:text-xl font-semibold text-[#4c4c4c] text-center mb-4 sm:mb-6 px-2">
+            Choose your vote:
+          </h2>
+
+          {/* Search Input */}
+          <div className="relative mb-3 sm:mb-6">
+            <label
+              htmlFor="search-input"
+              className="block text-sm font-medium text-gray-700 mb-2 px-2"
+            >
+              Search Options
+            </label>
+            <input
+              id="search-input"
+              type="text"
+              placeholder="Type to search for a name..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="block w-full px-3 sm:px-4 py-3 sm:py-3.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7ebd41] focus:border-[#7ebd41] text-gray-900 placeholder-gray-500 bg-white shadow-sm text-base touch-manipulation"
+            />
+          </div>
+
+          {/* Results count */}
+          {searchQuery && (
+            <div className="text-sm text-gray-600 text-center px-2 mb-2">
+              {filteredOptions.length === 0
+                ? "No matches found"
+                : `${filteredOptions.length} of ${votingSession.options.length} options`}
+            </div>
+          )}
+
+          {/* No results message */}
+          {searchQuery && filteredOptions.length === 0 && (
+            <div className="text-center py-8 px-4">
+              <div className="text-gray-400 mb-2">
+                <Vote className="w-8 h-8 mx-auto mb-2" />
+              </div>
+              <p className="text-gray-600 text-sm">
+                No nominees match "{searchQuery}"
+              </p>
+              <p className="text-gray-500 text-xs mt-1">
+                Try a different search term
+              </p>
+            </div>
+          )}
+
+          {/* Voting options */}
+          <div className="space-y-2 sm:space-y-3">
+            {filteredOptions.map((option, index) => (
+              <button
+                key={index}
+                onClick={() => handleVoteSelect(option)}
+                className="w-full voting-option bg-white rounded-xl p-3 sm:p-4 md:p-6 text-left border-2 border-gray-200 hover:border-[#7ebd41] focus:outline-none focus:ring-2 focus:ring-[#7ebd41] focus:ring-offset-2 transition-colors duration-200 touch-manipulation active:scale-[0.98] active:bg-gray-50"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-sm sm:text-base md:text-lg font-semibold text-[#4c4c4c] pr-2 break-words">
+                    {option}
+                  </span>
+                  <div className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 rounded-full border-2 border-gray-300 flex-shrink-0"></div>
+                </div>
+              </button>
+            ))}
+          </div>
+
+          {/* Show total options count when not searching */}
+          {!searchQuery && votingSession.options.length > 0 && (
+            <div className="text-center text-xs sm:text-sm text-gray-500 mt-4 px-2">
+              {votingSession.options.length} nominee
+              {votingSession.options.length !== 1 ? "s" : ""} available
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Vote Confirmation - Active Session */}
+      {voterState.hasVoted && votingSession.active && (
+        <div className="text-center mb-6 sm:mb-8 px-3 sm:px-2">
+          <div className="w-12 h-12 sm:w-16 sm:h-16 bg-[#7ebd41]/10 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+            <CheckCircle className="w-6 h-6 sm:w-8 sm:h-8 text-[#7ebd41]" />
+          </div>
+          <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-[#4c4c4c] mb-2">
+            Vote Submitted!
+          </h2>
+          <div className="bg-white rounded-xl p-3 sm:p-4 md:p-6 shadow-lg border border-gray-200 mb-3 sm:mb-4">
+            <p className="text-xs sm:text-sm text-gray-600 mb-2">
+              Your vote for
+            </p>
+            <p className="text-sm sm:text-base md:text-lg font-medium text-[#4c4c4c] mb-2 break-words">
+              {votingSession.title}
+            </p>
+            <p className="text-base sm:text-lg md:text-xl font-bold text-[#7ebd41] break-words">
+              {voterState.selectedOption}
             </p>
           </div>
-        )}
-
-        {/* Voting Options */}
-        {votingSession.active && !voterState.hasVoted && (
-          <div className="space-y-3 sm:space-y-4 mb-6 sm:mb-8">
-            <h2 className="text-lg sm:text-xl font-semibold text-[#4c4c4c] text-center mb-4 sm:mb-6 px-2">
-              Choose your vote:
-            </h2>
-
-            {/* Search Input */}
-            <div className="relative mb-3 sm:mb-6">
-              <label
-                htmlFor="search-input"
-                className="block text-sm font-medium text-gray-700 mb-2 px-2"
-              >
-                Search Options
-              </label>
-              <input
-                id="search-input"
-                type="text"
-                placeholder="Type to search for a name..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="block w-full px-3 sm:px-4 py-3 sm:py-3.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7ebd41] focus:border-[#7ebd41] text-gray-900 placeholder-gray-500 bg-white shadow-sm text-base touch-manipulation"
-              />
-            </div>
-
-            {/* Results count */}
-            {searchQuery && (
-              <div className="text-sm text-gray-600 text-center px-2 mb-2">
-                {filteredOptions.length === 0
-                  ? "No matches found"
-                  : `${filteredOptions.length} of ${votingSession.options.length} options`}
-              </div>
-            )}
-
-            {/* No results message */}
-            {searchQuery && filteredOptions.length === 0 && (
-              <div className="text-center py-8 px-4">
-                <div className="text-gray-400 mb-2">
-                  <Vote className="w-8 h-8 mx-auto mb-2" />
-                </div>
-                <p className="text-gray-600 text-sm">
-                  No nominees match "{searchQuery}"
-                </p>
-                <p className="text-gray-500 text-xs mt-1">
-                  Try a different search term
-                </p>
-              </div>
-            )}
-
-            {/* Voting options */}
-            <div className="space-y-2 sm:space-y-3">
-              {filteredOptions.map((option, index) => (
-                <button
-                  key={index}
-                  onClick={() => handleVoteSelect(option)}
-                  className="w-full voting-option bg-white rounded-xl p-3 sm:p-4 md:p-6 text-left border-2 border-gray-200 hover:border-[#7ebd41] focus:outline-none focus:ring-2 focus:ring-[#7ebd41] focus:ring-offset-2 transition-colors duration-200 touch-manipulation active:scale-[0.98] active:bg-gray-50"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm sm:text-base md:text-lg font-semibold text-[#4c4c4c] pr-2 break-words">
-                      {option}
-                    </span>
-                    <div className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 rounded-full border-2 border-gray-300 flex-shrink-0"></div>
-                  </div>
-                </button>
-              ))}
-            </div>
-
-            {/* Show total options count when not searching */}
-            {!searchQuery && votingSession.options.length > 0 && (
-              <div className="text-center text-xs sm:text-sm text-gray-500 mt-4 px-2">
-                {votingSession.options.length} nominee
-                {votingSession.options.length !== 1 ? "s" : ""} available
-              </div>
-            )}
+          <div className="bg-blue-50 rounded-lg p-3 border border-blue-200">
+            <p className="text-xs sm:text-sm text-blue-700 font-medium">
+              ✓ Vote recorded successfully
+            </p>
+            <p className="text-xs text-blue-600 mt-1">
+              Wait for the admin to begin the next category
+            </p>
           </div>
-        )}
+        </div>
+      )}
 
-        {/* Vote Confirmation - Active Session */}
-        {voterState.hasVoted && votingSession.active && (
-          <div className="text-center mb-6 sm:mb-8 px-3 sm:px-2">
-            <div className="w-12 h-12 sm:w-16 sm:h-16 bg-[#7ebd41]/10 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
-              <CheckCircle className="w-6 h-6 sm:w-8 sm:h-8 text-[#7ebd41]" />
-            </div>
-            <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-[#4c4c4c] mb-2">
-              Vote Submitted!
-            </h2>
-            <div className="bg-white rounded-xl p-3 sm:p-4 md:p-6 shadow-lg border border-gray-200 mb-3 sm:mb-4">
-              <p className="text-xs sm:text-sm text-gray-600 mb-2">
-                Your vote for
-              </p>
-              <p className="text-sm sm:text-base md:text-lg font-medium text-[#4c4c4c] mb-2 break-words">
-                {votingSession.title}
-              </p>
-              <p className="text-base sm:text-lg md:text-xl font-bold text-[#7ebd41] break-words">
-                {voterState.selectedOption}
-              </p>
-            </div>
-            <div className="bg-blue-50 rounded-lg p-3 border border-blue-200">
-              <p className="text-xs sm:text-sm text-blue-700 font-medium">
-                ✓ Vote recorded successfully
-              </p>
-              <p className="text-xs text-blue-600 mt-1">
-                Wait for the admin to begin the next category
-              </p>
-            </div>
+      {/* Post-Vote Status for Ended Session */}
+      {voterState.hasVoted && !votingSession.active && (
+        <div className="text-center mb-6 sm:mb-8 px-3 sm:px-2">
+          <div className="w-12 h-12 sm:w-16 sm:h-16 bg-[#7ebd41]/10 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+            <CheckCircle className="w-6 h-6 sm:w-8 sm:h-8 text-[#7ebd41]" />
           </div>
-        )}
-
-        {/* Post-Vote Status for Ended Session */}
-        {voterState.hasVoted && !votingSession.active && (
-          <div className="text-center mb-6 sm:mb-8 px-3 sm:px-2">
-            <div className="w-12 h-12 sm:w-16 sm:h-16 bg-[#7ebd41]/10 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
-              <CheckCircle className="w-6 h-6 sm:w-8 sm:h-8 text-[#7ebd41]" />
-            </div>
-            <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-[#4c4c4c] mb-2">
-              Your Vote
-            </h2>
-            <div className="bg-white rounded-xl p-3 sm:p-4 md:p-6 shadow-lg border border-gray-200 mb-3 sm:mb-4">
-              <p className="text-xs sm:text-sm text-gray-600 mb-2">
-                You voted for
-              </p>
-              <p className="text-sm sm:text-base md:text-lg font-medium text-[#4c4c4c] mb-2 break-words">
-                {votingSession.title}
-              </p>
-              <p className="text-base sm:text-lg md:text-xl font-bold text-[#7ebd41] break-words">
-                {voterState.selectedOption}
-              </p>
-            </div>
-            <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-              <p className="text-xs sm:text-sm text-gray-600">
-                Waiting for next category to begin
-              </p>
-            </div>
+          <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-[#4c4c4c] mb-2">
+            Your Vote
+          </h2>
+          <div className="bg-white rounded-xl p-3 sm:p-4 md:p-6 shadow-lg border border-gray-200 mb-3 sm:mb-4">
+            <p className="text-xs sm:text-sm text-gray-600 mb-2">
+              You voted for
+            </p>
+            <p className="text-sm sm:text-base md:text-lg font-medium text-[#4c4c4c] mb-2 break-words">
+              {votingSession.title}
+            </p>
+            <p className="text-base sm:text-lg md:text-xl font-bold text-[#7ebd41] break-words">
+              {voterState.selectedOption}
+            </p>
           </div>
-        )}
-
-        {/* Session Ended - No Vote Cast */}
-        {!votingSession.active && !voterState.hasVoted && (
-          <div className="text-center px-3 sm:px-2">
-            <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
-              <Vote className="w-6 h-6 sm:w-8 sm:h-8 text-gray-600" />
-            </div>
-            <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-[#4c4c4c] mb-2">
-              Category Ended
-            </h2>
-            <div className="bg-white rounded-xl p-3 sm:p-4 shadow-sm border border-gray-200 mb-3 sm:mb-4">
-              <p className="text-sm sm:text-base text-gray-600 mb-2">
-                Voting for this category has ended.
-              </p>
-              <p className="text-xs sm:text-sm text-gray-500">
-                You did not cast a vote for this category
-              </p>
-            </div>
-            <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-              <p className="text-xs sm:text-sm text-gray-600">
-                Wait for the admin to begin the next category
-              </p>
-            </div>
+          <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+            <p className="text-xs sm:text-sm text-gray-600">
+              Waiting for next category to begin
+            </p>
           </div>
-        )}
+        </div>
+      )}
 
-        {/* Confirmation Modal */}
-        <ConfirmationModal
-          isOpen={showConfirmation}
-          nominee={pendingVote}
-          categoryTitle={votingSession?.title || ""}
-          onConfirm={handleVoteConfirm}
-          onCancel={handleVoteCancel}
-        />
-      </div>
+      {/* Session Ended - No Vote Cast */}
+      {!votingSession.active && !voterState.hasVoted && (
+        <div className="text-center px-3 sm:px-2">
+          <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+            <Vote className="w-6 h-6 sm:w-8 sm:h-8 text-gray-600" />
+          </div>
+          <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-[#4c4c4c] mb-2">
+            Category Ended
+          </h2>
+          <div className="bg-white rounded-xl p-3 sm:p-4 shadow-sm border border-gray-200 mb-3 sm:mb-4">
+            <p className="text-sm sm:text-base text-gray-600 mb-2">
+              Voting for this category has ended.
+            </p>
+            <p className="text-xs sm:text-sm text-gray-500">
+              You did not cast a vote for this category
+            </p>
+          </div>
+          <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+            <p className="text-xs sm:text-sm text-gray-600">
+              Wait for the admin to begin the next category
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={showConfirmation}
+        nominee={pendingVote}
+        categoryTitle={votingSession?.title || ""}
+        onConfirm={handleVoteConfirm}
+        onCancel={handleVoteCancel}
+      />
     </div>
   );
 }

@@ -449,471 +449,280 @@ export default function AdminPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 p-2 sm:p-4">
-      <div className="max-w-6xl mx-auto">
+    <div className="min-h-screen pb-10">
+      <div className="max-w-7xl mx-auto px-4 pt-8">
         {/* Header */}
-        <div className="text-center mb-4 sm:mb-8">
-          <h1 className="text-3xl sm:text-5xl font-bold text-gray-900 mb-2 sm:mb-4">
-            🏆 Admin Panel
+        <header className="text-center mb-12 animate-slide-up">
+          <div className="inline-block p-3 rounded-2xl bg-white shadow-xl mb-6 border border-white/50">
+            <Trophy className="w-10 h-10 text-gritfeat-green animate-float" />
+          </div>
+          <h1 className="text-5xl sm:text-7xl font-black text-slate-800 mb-4 tracking-tight">
+            Awards <span className="text-gritfeat-green">Control</span> Center
           </h1>
-          <p className="text-lg sm:text-xl text-gray-600">
-            Control voting sessions and monitor results in real-time
+          <p className="text-lg sm:text-xl text-slate-500 font-medium max-w-2xl mx-auto">
+            Orchestrate your event in real-time. Manage voting sessions, monitor attendance, and reveal winners with flair.
           </p>
-        </div>
+        </header>
 
-        {/* Network Info Panel - Show QR for participants */}
-        <div className="bg-white rounded-xl p-4 sm:p-6 shadow-lg mb-4 sm:mb-8 border-l-4 border-[#7ebd41]">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
-              {qrCodeDataUrl && (
-                <img
-                  src={qrCodeDataUrl}
-                  alt="QR Code for participants"
-                  className="w-24 h-24 sm:w-32 sm:h-32 rounded-lg border-2 border-gray-200"
-                />
-              )}
-              <div className="text-center sm:text-left">
-                <h3 className="text-lg font-semibold text-[#4c4c4c] flex items-center gap-2">
-                  <Wifi className="w-5 h-5 text-[#7ebd41]" />
-                  Participant Link
-                </h3>
-                <p className="text-sm text-gray-600 mb-2">
-                  Scan the QR code or share this URL:
-                </p>
-                <p className="font-mono text-xs sm:text-sm text-[#4c4c4c] bg-gray-100 px-3 py-2 rounded break-all">
-                  {participantUrl}
-                </p>
+        {/* Top Actions Row: Connection & Social Reset */}
+        <div className="flex flex-col lg:flex-row gap-8 mb-12">
+          {/* Connection & Share Panel */}
+          <section className="lg:w-2/3 glass-card p-6 sm:p-8 relative overflow-hidden group">
+            <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
+              <Wifi className="w-48 h-48 -mr-12 -mt-12" />
+            </div>
+
+            <div className="relative z-10 flex flex-col md:flex-row items-center gap-8">
+              <div className="bg-white p-3 rounded-2xl shadow-inner border border-slate-100 shrink-0">
+                {qrCodeDataUrl ? (
+                  <img
+                    src={qrCodeDataUrl}
+                    alt="Participant QR"
+                    className="w-32 h-32 sm:w-40 sm:h-40 rounded-xl"
+                  />
+                ) : (
+                  <div className="w-40 h-40 bg-slate-50 animate-pulse rounded-xl" />
+                )}
+              </div>
+
+              <div className="flex-1 text-center md:text-left">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gritfeat-green/10 text-gritfeat-green text-xs font-bold uppercase tracking-wider mb-3">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-gritfeat-green opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-gritfeat-green"></span>
+                  </span>
+                  Share & Connect
+                </div>
+                <h3 className="text-2xl font-bold text-slate-800 mb-2">Invite Participants</h3>
+                <p className="text-slate-500 mb-6 font-medium">Share the link below or let people scan the QR code to join the live voting room instantly.</p>
+
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <div className="flex-1 bg-slate-100/50 border border-slate-200 rounded-2xl px-4 py-3 font-mono text-sm text-slate-600 truncate flex items-center">
+                    {participantUrl}
+                  </div>
+                  <button onClick={copyToClipboard} className="btn-primary flex items-center justify-center gap-2 min-w-[140px]">
+                    {copied ? <><Check className="w-4 h-4" /> Copied</> : <><Copy className="w-4 h-4" /> Copy Link</>}
+                  </button>
+                </div>
               </div>
             </div>
-            <button
-              onClick={copyToClipboard}
-              className="flex items-center gap-2 bg-[#7ebd41] hover:bg-[#6ba835] text-white px-4 py-2 rounded-lg transition-colors font-semibold whitespace-nowrap"
-            >
-              {copied ? (
-                <>
-                  <Check className="w-4 h-4" />
-                  Copied!
-                </>
-              ) : (
-                <>
-                  <Copy className="w-4 h-4" />
-                  Copy Link
-                </>
-              )}
-            </button>
-          </div>
-        </div>
+          </section>
 
-        {/* Stats Overview */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6 mb-4 sm:mb-8">
-          <div className="bg-white rounded-xl p-6 shadow-lg text-center">
-            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-              <Users className="w-6 h-6 text-blue-600" />
-            </div>
-            <h3 className="text-2xl font-bold text-gray-900">
-              {participantCount}
-            </h3>
-            <p className="text-gray-600">Connected Participants</p>
-          </div>
-
-          <div className="bg-white rounded-xl p-6 shadow-lg text-center">
-            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-              <BarChart3 className="w-6 h-6 text-green-600" />
-            </div>
-            <h3 className="text-2xl font-bold text-gray-900">
-              {categories.length}
-            </h3>
-            <p className="text-gray-600">Award Categories</p>
-          </div>
-
-          <div className="bg-white rounded-xl p-6 shadow-lg text-center">
-            <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-              <Clock className="w-6 h-6 text-orange-600" />
-            </div>
-            <h3 className="text-2xl font-bold text-gray-900">
-              {currentSession?.active ? formatTime(timeLeft) : "--:--"}
-            </h3>
-            <p className="text-gray-600">Time Remaining</p>
-          </div>
-
-          <div className="bg-white rounded-xl p-6 shadow-lg text-center">
-            <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-              <svg
-                className="w-6 h-6 text-red-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+          {/* Critical Actions Panel */}
+          <section className="lg:w-1/3 glass-card p-6 sm:p-8 flex flex-col justify-center border-t-8 border-red-500/20">
+            <div className="text-center">
+              <div className="w-14 h-14 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-4 text-red-500 shadow-sm">
+                <Square className="w-6 h-6 fill-current" />
+              </div>
+              <h3 className="text-xl font-bold text-slate-800 mb-2">Emergency Reset</h3>
+              <p className="text-sm text-slate-500 mb-6 font-medium">Permanently wipe all voting results and participants. This cannot be undone.</p>
+              <button
+                onClick={resetDatabase}
+                className="w-full py-4 px-6 rounded-2xl bg-white border-2 border-red-100 text-red-600 font-bold hover:bg-red-600 hover:text-white hover:border-red-600 transition-all active:scale-95 flex items-center justify-center gap-2"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                />
-              </svg>
+                Clear All Stage Data
+              </button>
             </div>
-            <button
-              onClick={resetDatabase}
-              className="w-full bg-red-500 text-white py-2 px-4 rounded-lg font-semibold hover:bg-red-600 transition-colors text-sm"
-            >
-              Reset Database
-            </button>
-            <p className="text-gray-600 text-xs mt-2">Clear all voting data</p>
-          </div>
+          </section>
         </div>
 
+        {/* Stats Grid */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 mb-12 animate-slide-up" style={{ animationDelay: '0.1s' }}>
+          {[
+            { label: 'Live Participants', value: participantCount, icon: Users, color: 'blue' },
+            { label: 'Award Categories', value: categories.length, icon: BarChart3, color: 'green' },
+            { label: 'Time Control', value: currentSession?.active ? formatTime(timeLeft) : '--:--', icon: Clock, color: 'orange' },
+            { label: 'Total Votes', value: categories.reduce((acc, cat) => acc + (cat.results ? Object.values(cat.results).reduce((a, b) => a + b, 0) : 0), 0), icon: Trophy, color: 'purple' }
+          ].map((stat, i) => (
+            <div key={i} className="glass-card p-6 text-center group">
+              <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-4 transition-transform group-hover:scale-110 shadow-sm
+                ${stat.color === 'blue' ? 'bg-blue-50 text-blue-600' :
+                  stat.color === 'green' ? 'bg-green-50 text-green-600' :
+                    stat.color === 'orange' ? 'bg-orange-50 text-orange-600' :
+                      'bg-purple-50 text-purple-600'}`}>
+                <stat.icon className="w-6 h-6" />
+              </div>
+              <h4 className="text-3xl font-black text-slate-800 mb-1">{stat.value}</h4>
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{stat.label}</p>
+            </div>
+          ))}
+        </div>
 
-        {/* Winner Announcement - Show after voting ends */}
-        {currentSession && !currentSession.active && getWinner() && (
+        {/* Current Voting Session */}
+        {currentSession && currentSession.active && (
           <div className="bg-white rounded-xl p-8 shadow-xl mb-8 border-l-4 border-[#7ebd41]">
             <div className="text-center mb-6">
               <h2 className="text-3xl font-bold text-[#4c4c4c] mb-2">
-                {currentSession.title} - Results
+                {currentSession.title}
               </h2>
               <p className="text-lg text-gray-600 mb-4">
                 {currentSession.description}
               </p>
-            </div>
 
-            {/* Winner Announcement */}
-            <div className="text-center bg-gradient-to-r from-[#7ebd41]/10 to-[#7ebd41]/5 rounded-xl p-6 border-2 border-[#7ebd41]/20 mb-6">
-              <div className="w-16 h-16 bg-[#7ebd41]/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Trophy className="w-8 h-8 text-[#7ebd41]" />
-              </div>
-              <h3 className="text-2xl font-bold text-[#4c4c4c] mb-2">
-                {getWinner()?.[2] ? "Tie!" : "Winner!"}
-              </h3>
-              <p className="text-xl text-gray-700">
-                <span className="font-semibold text-[#7ebd41]">
-                  {getWinner()?.[0]}
-                </span>{" "}
-                {getWinner()?.[2] ? "tie with" : "wins with"}{" "}
-                <span className="font-semibold">{getWinner()?.[1]} votes</span>!
-              </p>
-            </div>
-
-            {/* Final Results */}
-            {Object.keys(currentSession.results).length > 0 && (
-              <div className="mb-6">
-                <h3 className="text-xl font-semibold text-[#4c4c4c] mb-4 text-center">
-                  Final Results
-                </h3>
-                <div className="grid md:grid-cols-2 gap-4">
-                  {currentSession.options.map((option, index) => {
-                    const votes = currentSession.results[option] || 0;
-                    const totalVotes = Object.values(
-                      currentSession.results
-                    ).reduce((a, b) => a + b, 0);
-                    const percentage =
-                      totalVotes > 0 ? (votes / totalVotes) * 100 : 0;
-
-                    return (
-                      <div key={index} className="bg-gray-50 rounded-lg p-4">
-                        <div className="flex justify-between text-sm mb-2">
-                          <span className="font-medium text-gray-700">
-                            {option}
-                          </span>
-                          <span className="text-gray-500 font-semibold">
-                            {votes} votes
-                          </span>
-                        </div>
-                        <div className="w-full bg-gray-200 rounded-full h-4">
-                          <div
-                            className="bg-[#7ebd41] h-4 rounded-full transition-all duration-500 ease-out"
-                            style={{ width: `${percentage}%` }}
-                          ></div>
-                        </div>
-                        <div className="text-right text-sm text-gray-500 mt-1">
-                          {percentage.toFixed(1)}%
-                        </div>
-                      </div>
-                    );
-                  })}
+              <div className="flex items-center justify-center space-x-6 text-lg">
+                <div className="flex items-center text-[#7ebd41]">
+                  <Clock className="w-5 h-5 mr-2" />
+                  <span className="font-mono font-bold text-2xl">
+                    {formatTime(timeLeft)}
+                  </span>
+                </div>
+                <div className="flex items-center text-[#4c4c4c]">
+                  <Users className="w-5 h-5 mr-2" />
+                  <span className="font-semibold">
+                    {participantCount} participants
+                  </span>
                 </div>
               </div>
-            )}
+            </div>
 
-            {/* Next Category Button */}
-            <div className="text-center">
-              <button
-                onClick={() => setCurrentSession(null)}
-                className="bg-[#7ebd41] text-white py-3 px-8 rounded-lg font-semibold hover:bg-[#6ba835] transition-colors flex items-center mx-auto"
-              >
-                <Play className="w-5 h-5 mr-2" />
-                Choose Next Category
-              </button>
+            {/* Active Stage */}
+            <div className="mb-12 animate-slide-up" style={{ animationDelay: '0.2s' }}>
+              {currentSession && currentSession.active ? (
+                <div className="glass-card p-8 border-l-8 border-gritfeat-green relative overflow-hidden">
+                  <div className="absolute top-0 right-0 p-12 text-gritfeat-green/5">
+                    <Play className="w-64 h-64 fill-current rotate-12" />
+                  </div>
+
+                  <div className="relative z-10">
+                    <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-8">
+                      <div className="text-center md:text-left">
+                        <div className="inline-block px-4 py-1.5 rounded-full bg-gritfeat-green text-white text-xs font-black uppercase tracking-widest mb-4 shadow-lg shadow-gritfeat-green/30">
+                          Now Live & Accepting Votes
+                        </div>
+                        <h2 className="text-4xl font-black text-slate-800 mb-2">{currentSession.title}</h2>
+                        <p className="text-slate-500 text-lg max-w-xl font-medium">{currentSession.description}</p>
+                      </div>
+
+                      <div className="flex flex-col items-center justify-center gap-1 bg-white shadow-xl rounded-3xl p-6 min-w-[180px] border border-slate-100">
+                        <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Time Lapsed</span>
+                        <span className="text-5xl font-black text-gritfeat-green font-mono tracking-tighter">
+                          {currentSession.startTime ? formatTime(Math.floor((Date.now() - currentSession.startTime) / 1000)) : "0:00"}
+                        </span>
+                        <div className="flex items-center gap-2 mt-2 text-slate-400 font-bold text-sm">
+                          <Users className="w-4 h-4" /> {participantCount} Active
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-6 mb-10">
+                      <h3 className="text-lg font-black text-slate-700 flex items-center gap-2">
+                        <BarChart3 className="w-5 h-5 text-gritfeat-green" /> Live Response Feed
+                      </h3>
+                      <div className="grid md:grid-cols-2 gap-4">
+                        {currentSession.options.map((option, idx) => {
+                          const votes = currentSession.results[option] || 0;
+                          const totalVotes = Object.values(currentSession.results).reduce((a, b) => a + b, 0);
+                          const percentage = totalVotes > 0 ? (votes / totalVotes) * 100 : 0;
+
+                          return (
+                            <div key={idx} className="bg-slate-100/50 rounded-2xl p-4 border border-white">
+                              <div className="flex justify-between items-center mb-2">
+                                <span className="font-bold text-slate-700">{option}</span>
+                                <span className="bg-white px-3 py-1 rounded-full text-xs font-black text-slate-600 shadow-sm border border-slate-100">{votes} Votes</span>
+                              </div>
+                              <div className="relative h-3 bg-white rounded-full overflow-hidden shadow-inner border border-slate-100">
+                                <div
+                                  className="absolute inset-y-0 left-0 bg-gradient-to-r from-gritfeat-green to-gritfeat-green-light rounded-full transition-all duration-1000 ease-out"
+                                  style={{ width: `${percentage}%` }}
+                                />
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    <div className="flex justify-center">
+                      <button
+                        onClick={endVoting}
+                        className="px-12 py-5 rounded-2xl bg-slate-800 text-white font-black hover:bg-slate-900 transition-all flex items-center gap-3 shadow-2xl shadow-slate-900/20 active:scale-95"
+                      >
+                        <Square className="w-5 h-5 fill-white" /> Complete Session
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="glass-card p-12 text-center border-2 border-dashed border-slate-200 bg-transparent flex flex-col items-center">
+                  <div className="w-20 h-20 bg-slate-100 rounded-3xl flex items-center justify-center mb-6 text-slate-300">
+                    <Play className="w-10 h-10 fill-current translate-x-1" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-slate-400 mb-2">Stage is currently empty</h3>
+                  <p className="text-slate-400 max-w-sm font-medium">Select a category below to start a new live voting session for your participants.</p>
+                </div>
+              )}
+            </div>
+
+            {/* Results Reveal Section */}
+            <section className="mb-12 animate-slide-up" style={{ animationDelay: '0.3s' }}>
+              <ResultsReveal
+                categories={categories}
+                onRevealWinner={revealWinner}
+              />
+            </section>
+
+            {/* Categories Management Grid */}
+            <section className="animate-slide-up" style={{ animationDelay: '0.4s' }}>
+              <div className="flex items-center justify-between mb-8">
+                <h2 className="text-3xl font-black text-slate-800">All Categories</h2>
+                <div className="flex gap-2">
+                  <span className="px-4 py-1.5 bg-slate-100 rounded-full text-xs font-bold text-slate-500">{categories.length} Total</span>
+                  <span className="px-4 py-1.5 bg-gritfeat-green/10 rounded-full text-xs font-bold text-gritfeat-green">{categories.filter(c => c.completed).length} Done</span>
+                </div>
+              </div>
+
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {categories.map((category) => {
+                  const isActive = currentSession?.active && currentSession.categoryId === category.id;
+                  const canStart = !category.completed && !isActive && (!currentSession || !currentSession.active);
+
+                  return (
+                    <div key={category.id} className={`glass-card p-6 flex flex-col relative overflow-hidden group hover:border-gritfeat-green/30 ${category.completed ? 'opacity-80 grayscale-[0.05]' : ''}`}>
+                      <div className="flex items-start justify-between mb-4">
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${category.completed ? 'bg-gritfeat-green text-white' : 'bg-slate-100 text-slate-400'}`}>
+                          {category.completed ? <Check className="w-5 h-5" /> : <Play className="w-4 h-4 translate-x-0.5 fill-current" />}
+                        </div>
+                        <div className="text-xs font-black uppercase tracking-widest text-slate-400">
+                          {category.completed ? 'Archived' : isActive ? 'On Air' : 'Queued'}
+                        </div>
+                      </div>
+
+                      <h3 className="text-xl font-bold text-slate-800 mb-2">{category.title}</h3>
+                      <p className="text-sm text-slate-500 mb-6 flex-1 line-clamp-2 font-medium">{category.description}</p>
+
+                      <div className="pt-6 border-t border-slate-100">
+                        {canStart ? (
+                          <button
+                            onClick={() => startVoting(category.id)}
+                            className="w-full btn-primary py-3 active:scale-95"
+                          >
+                            Launch Now
+                          </button>
+                        ) : isActive ? (
+                          <div className="w-full py-3 bg-gritfeat-green/10 text-gritfeat-green font-black rounded-2xl flex items-center justify-center gap-2 animate-pulse">
+                            Live Stream Active
+                          </div>
+                        ) : (
+                          <div className="w-full py-3 bg-slate-50 text-slate-400 font-bold rounded-2xl flex items-center justify-center border border-slate-100">
+                            Category Completed
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+
+            {/* Instructions */}
+            <div className="mt-12 text-center text-slate-400 font-medium">
+              <p className="text-sm flex items-center justify-center gap-2">
+                <span className="w-2 h-2 bg-gritfeat-green rounded-full"></span>
+                Pro Tip: Share this admin screen on your projector to show live results to everyone!
+              </p>
             </div>
           </div>
         )}
-
-        {/* Enhanced Category Control Interface */}
-        <div className="bg-white rounded-xl p-8 shadow-xl border-l-4 border-[#7ebd41]">
-          <h2 className="text-2xl font-bold text-[#4c4c4c] mb-6 text-center">
-            Category Management
-          </h2>
-
-          {/* Session Flow Progress */}
-          <div className="mb-8 p-4 bg-gray-50 rounded-lg">
-            <h3 className="text-lg font-semibold text-gray-700 mb-3">
-              Session Progress
-            </h3>
-            <div className="flex items-center justify-between text-sm">
-              <div className="flex items-center space-x-4">
-                <div className="flex items-center">
-                  <div className="w-3 h-3 bg-gray-300 rounded-full mr-2"></div>
-                  <span className="text-gray-600">
-                    {
-                      categories.filter(
-                        (cat) =>
-                          !cat.completed &&
-                          (!currentSession ||
-                            currentSession.categoryId !== cat.id)
-                      ).length
-                    }{" "}
-                    Not Started
-                  </span>
-                </div>
-                <div className="flex items-center">
-                  <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
-                  <span className="text-blue-600">
-                    {currentSession && currentSession.active ? 1 : 0} Active
-                  </span>
-                </div>
-                <div className="flex items-center">
-                  <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
-                  <span className="text-green-600">
-                    {categories.filter((cat) => cat.completed).length} Completed
-                  </span>
-                </div>
-              </div>
-              <div className="text-gray-500">
-                {categories.filter((cat) => cat.completed).length} /{" "}
-                {categories.length} Categories Complete
-              </div>
-            </div>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {categories.map((category) => {
-              const isActive =
-                currentSession &&
-                currentSession.active &&
-                currentSession.categoryId === category.id;
-              const canStart =
-                !category.completed &&
-                !isActive &&
-                (!currentSession || !currentSession.active);
-              const canStop = isActive;
-
-              // Calculate real-time vote count for active category
-              const voteCount =
-                isActive && currentSession
-                  ? Object.values(currentSession.results).reduce(
-                    (sum, count) => sum + count,
-                    0
-                  )
-                  : category.results
-                    ? Object.values(category.results).reduce(
-                      (sum, count) => sum + count,
-                      0
-                    )
-                    : 0;
-
-              return (
-                <div
-                  key={category.id}
-                  className={`bg-gray-50 rounded-lg p-6 transition-all duration-200 border-2 ${isActive
-                    ? "border-blue-500 bg-blue-50"
-                    : category.completed
-                      ? "border-green-300 bg-green-50"
-                      : "border-gray-200 hover:border-[#7ebd41] hover:bg-gray-100"
-                    }`}
-                >
-                  {/* Category Status Indicator */}
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center space-x-2">
-                      <div
-                        className={`w-3 h-3 rounded-full ${isActive
-                          ? "bg-blue-500 animate-pulse"
-                          : category.completed
-                            ? "bg-green-500"
-                            : "bg-gray-300"
-                          }`}
-                      ></div>
-                      <span
-                        className={`text-xs font-semibold uppercase tracking-wide ${isActive
-                          ? "text-blue-600"
-                          : category.completed
-                            ? "text-green-600"
-                            : "text-gray-500"
-                          }`}
-                      >
-                        {isActive
-                          ? "Active"
-                          : category.completed
-                            ? "Completed"
-                            : "Not Started"}
-                      </span>
-                    </div>
-
-                    {/* Real-time vote count */}
-                    {(isActive || category.completed) && (
-                      <div className="flex items-center space-x-1 text-sm">
-                        <Users className="w-4 h-4 text-gray-500" />
-                        <span className="font-semibold text-gray-700">
-                          {voteCount} {voteCount === 1 ? "vote" : "votes"}
-                        </span>
-                        {isActive && (
-                          <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse ml-1"></div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-
-                  <h3 className="text-lg font-semibold text-[#4c4c4c] mb-2">
-                    {category.title}
-                  </h3>
-                  <p className="text-gray-600 text-sm mb-4">
-                    {category.description}
-                  </p>
-
-                  {/* Live Results for Active Category */}
-                  {isActive &&
-                    currentSession &&
-                    Object.keys(currentSession.results).length > 0 && (
-                      <div className="mb-4 p-3 bg-white rounded-lg border border-blue-200">
-                        <h4 className="text-sm font-semibold text-blue-700 mb-2 flex items-center">
-                          <BarChart3 className="w-4 h-4 mr-1" />
-                          Live Results
-                        </h4>
-                        <div className="space-y-2">
-                          {Object.entries(currentSession.results)
-                            .sort(([, a], [, b]) => b - a)
-                            .slice(0, 3)
-                            .map(([option, votes], index) => {
-                              const percentage =
-                                voteCount > 0 ? (votes / voteCount) * 100 : 0;
-                              return (
-                                <div
-                                  key={option}
-                                  className="flex justify-between items-center text-xs"
-                                >
-                                  <span className="font-medium text-gray-700 truncate mr-2">
-                                    {index === 0 && "🥇"} {index === 1 && "🥈"}{" "}
-                                    {index === 2 && "🥉"} {option}
-                                  </span>
-                                  <div className="flex items-center space-x-2">
-                                    <div className="w-12 bg-gray-200 rounded-full h-2">
-                                      <div
-                                        className="bg-blue-500 h-2 rounded-full transition-all duration-300"
-                                        style={{ width: `${percentage}%` }}
-                                      ></div>
-                                    </div>
-                                    <span className="text-gray-600 font-semibold min-w-[2rem]">
-                                      {votes}
-                                    </span>
-                                  </div>
-                                </div>
-                              );
-                            })}
-                        </div>
-                      </div>
-                    )}
-
-                  {/* Final Results for Completed Categories */}
-                  {category.completed && category.results && (
-                    <div className="mb-4 p-3 bg-white rounded-lg border border-green-200">
-                      <h4 className="text-sm font-semibold text-green-700 mb-2">
-                        Final Results:
-                      </h4>
-                      {getTopResultsForCategory(category.results).map(
-                        (result, index) => {
-                          const totalVotes = Object.values(
-                            category.results
-                          ).reduce((a, b) => a + b, 0);
-                          const percentage =
-                            totalVotes > 0
-                              ? (result.votes / totalVotes) * 100
-                              : 0;
-                          const positionLabels = ["🥇", "🥈", "🥉"];
-                          const positionLabel =
-                            positionLabels[result.position - 1] ||
-                            `${result.position}.`;
-
-                          return (
-                            <div
-                              key={index}
-                              className="flex justify-between items-center text-xs mb-1"
-                            >
-                              <div className="flex items-center space-x-1">
-                                <span>{positionLabel}</span>
-                                <span className="font-medium text-gray-700">
-                                  {result.name}
-                                  {result.isTie && (
-                                    <span className="text-gray-500">(Tie)</span>
-                                  )}
-                                </span>
-                              </div>
-                              <span className="text-gray-500">
-                                {result.votes} ({percentage.toFixed(1)}%)
-                              </span>
-                            </div>
-                          );
-                        }
-                      )}
-                    </div>
-                  )}
-
-                  {/* Category Control Buttons */}
-                  <div className="space-y-2">
-                    {canStart && (
-                      <button
-                        onClick={() => startVoting(category.id)}
-                        className="w-full bg-[#7ebd41] text-white py-2 px-4 rounded-lg font-semibold hover:bg-[#6ba835] transition-colors flex items-center justify-center"
-                      >
-                        <Play className="w-4 h-4 mr-2" />
-                        Start Voting
-                      </button>
-                    )}
-
-                    {canStop && (
-                      <button
-                        onClick={() => stopVoting(category.id)}
-                        className="w-full bg-red-600 text-white py-2 px-4 rounded-lg font-semibold hover:bg-red-700 transition-colors flex items-center justify-center"
-                      >
-                        <Square className="w-4 h-4 mr-2" />
-                        Stop Voting
-                      </button>
-                    )}
-
-                    {category.completed && (
-                      <div className="w-full bg-gray-400 text-gray-600 py-2 px-4 rounded-lg font-semibold flex items-center justify-center cursor-not-allowed">
-                        <Trophy className="w-4 h-4 mr-2" />
-                        Completed
-                      </div>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Results Reveal System */}
-        <div className="mt-8">
-          <ResultsReveal
-            categories={categories}
-            onRevealWinner={revealWinner}
-          />
-        </div>
-
-        {/* Instructions */}
-        <div className="mt-8 text-center text-gray-600">
-          <p className="text-sm">
-            💡 <strong>Tip:</strong> Share this admin screen on your projector
-            to show live results to everyone!
-          </p>
-        </div>
       </div>
     </div>
   );

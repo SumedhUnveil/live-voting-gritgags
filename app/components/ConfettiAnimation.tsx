@@ -33,25 +33,42 @@ export default function ConfettiAnimation({
   // Create a single particle
   const createParticle = useCallback(
     (canvas: HTMLCanvasElement): Particle => {
-      const centerX = canvas.width / 2;
-      const centerY = canvas.height * 0.3; // Start from upper portion
+      // Logic for multi-source confetti (cannons at bottom left/right + top burst)
+      const mode = Math.random();
+      let x, y, vx, vy;
 
-      // Random angle and velocity for spread effect
-      const angle = (Math.random() - 0.5) * Math.PI; // -90 to 90 degrees
-      const velocity = Math.random() * 15 + 5; // Random velocity between 5-20
+      if (mode < 0.4) {
+        // Bottom Left Cannon
+        x = 0;
+        y = canvas.height;
+        vx = Math.random() * 25 + 10;
+        vy = (Math.random() * 25 + 15) * -1;
+      } else if (mode < 0.8) {
+        // Bottom Right Cannon
+        x = canvas.width;
+        y = canvas.height;
+        vx = (Math.random() * 25 + 10) * -1;
+        vy = (Math.random() * 25 + 15) * -1;
+      } else {
+        // Top Burst
+        x = canvas.width / 2 + (Math.random() - 0.5) * canvas.width;
+        y = -20;
+        vx = (Math.random() - 0.5) * 10;
+        vy = Math.random() * 10;
+      }
 
       return {
-        x: centerX + (Math.random() - 0.5) * 100, // Small horizontal spread
-        y: centerY,
-        vx: Math.sin(angle) * velocity,
-        vy: Math.cos(angle) * velocity * -1, // Negative for upward motion
+        x,
+        y,
+        vx,
+        vy,
         color: colors[Math.floor(Math.random() * colors.length)],
-        size: Math.random() * 8 + 4, // Size between 4-12
+        size: Math.random() * 10 + 5,
         rotation: Math.random() * Math.PI * 2,
-        rotationSpeed: (Math.random() - 0.5) * 0.3,
-        gravity: 0.5 + Math.random() * 0.3, // Gravity between 0.5-0.8
+        rotationSpeed: (Math.random() - 0.5) * 0.4,
+        gravity: 0.8 + Math.random() * 0.4, // Increased gravity (was 0.5-0.8)
         life: 1,
-        maxLife: duration / 1000, // Convert to seconds
+        maxLife: (duration / 1000) * (0.8 + Math.random() * 0.4),
       };
     },
     [colors, duration]
@@ -61,7 +78,9 @@ export default function ConfettiAnimation({
   const initializeParticles = useCallback(
     (canvas: HTMLCanvasElement) => {
       particlesRef.current = [];
-      for (let i = 0; i < particleCount; i++) {
+      // Triple the particle count for a MORE PLEASING effect
+      const actualCount = particleCount * 3;
+      for (let i = 0; i < actualCount; i++) {
         particlesRef.current.push(createParticle(canvas));
       }
     },
@@ -158,17 +177,13 @@ export default function ConfettiAnimation({
     [duration, updateParticle, drawParticle, onComplete]
   );
 
-  // Resize canvas to match container
+  // Resize canvas to match screen
   const resizeCanvas = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const container = canvas.parentElement;
-    if (!container) return;
-
-    const rect = container.getBoundingClientRect();
-    canvas.width = rect.width;
-    canvas.height = rect.height;
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
   }, []);
 
   // Start animation
@@ -246,10 +261,10 @@ export default function ConfettiAnimation({
   return (
     <canvas
       ref={canvasRef}
-      className="absolute inset-0 pointer-events-none z-50"
+      className="fixed inset-0 pointer-events-none z-[9999]"
       style={{
-        width: "100%",
-        height: "100%",
+        width: "100vw",
+        height: "100vh",
       }}
     />
   );
