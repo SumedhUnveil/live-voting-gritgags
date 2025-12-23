@@ -496,11 +496,11 @@ export default function AdminPage() {
                 <h3 className="text-2xl font-bold text-slate-800 mb-2">Invite Participants</h3>
                 <p className="text-slate-500 mb-6 font-medium">Share the link below or let people scan the QR code to join the live voting room instantly.</p>
 
-                <div className="flex flex-col sm:flex-row gap-3">
-                  <div className="flex-1 bg-slate-100/50 border border-slate-200 rounded-2xl px-4 py-3 font-mono text-sm text-slate-600 truncate flex items-center">
+                <div className="flex flex-col gap-3">
+                  <div className="bg-slate-100/50 border border-slate-200 rounded-2xl px-4 py-3 font-mono text-sm text-slate-600 truncate flex items-center">
                     {participantUrl}
                   </div>
-                  <button onClick={copyToClipboard} className="btn-primary flex items-center justify-center gap-2 min-w-[140px]">
+                  <button onClick={copyToClipboard} className="btn-primary flex items-center justify-center gap-2 py-3 w-full sm:w-auto">
                     {copied ? <><Check className="w-4 h-4" /> Copied</> : <><Copy className="w-4 h-4" /> Copy Link</>}
                   </button>
                 </div>
@@ -548,181 +548,152 @@ export default function AdminPage() {
           ))}
         </div>
 
-        {/* Current Voting Session */}
-        {currentSession && currentSession.active && (
-          <div className="bg-white rounded-xl p-8 shadow-xl mb-8 border-l-4 border-[#7ebd41]">
-            <div className="text-center mb-6">
-              <h2 className="text-3xl font-bold text-[#4c4c4c] mb-2">
-                {currentSession.title}
-              </h2>
-              <p className="text-lg text-gray-600 mb-4">
-                {currentSession.description}
-              </p>
+        {/* Active Stage */}
+        <div className="mb-12 animate-slide-up" style={{ animationDelay: '0.2s' }}>
+          {currentSession && currentSession.active ? (
+            <div className="glass-card p-8 border-l-8 border-gritfeat-green relative overflow-hidden">
+              <div className="absolute top-0 right-0 p-12 text-gritfeat-green/5">
+                <Play className="w-64 h-64 fill-current rotate-12" />
+              </div>
 
-              <div className="flex items-center justify-center space-x-6 text-lg">
-                <div className="flex items-center text-[#7ebd41]">
-                  <Clock className="w-5 h-5 mr-2" />
-                  <span className="font-mono font-bold text-2xl">
-                    {formatTime(timeLeft)}
-                  </span>
+              <div className="relative z-10">
+                <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-8">
+                  <div className="text-center md:text-left">
+                    <div className="inline-block px-4 py-1.5 rounded-full bg-gritfeat-green text-white text-xs font-black uppercase tracking-widest mb-4 shadow-lg shadow-gritfeat-green/30">
+                      Now Live & Accepting Votes
+                    </div>
+                    <h2 className="text-4xl font-black text-slate-800 mb-2">{currentSession.title}</h2>
+                    <p className="text-slate-500 text-lg max-w-xl font-medium">{currentSession.description}</p>
+                  </div>
+
+                  <div className="flex flex-col items-center justify-center gap-1 bg-white shadow-xl rounded-3xl p-6 min-w-[180px] border border-slate-100">
+                    <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Time Lapsed</span>
+                    <span className="text-5xl font-black text-gritfeat-green font-mono tracking-tighter">
+                      {currentSession.startTime ? formatTime(Math.floor((Date.now() - currentSession.startTime) / 1000)) : "0:00"}
+                    </span>
+                    <div className="flex items-center gap-2 mt-2 text-slate-400 font-bold text-sm">
+                      <Users className="w-4 h-4" /> {participantCount} Active
+                    </div>
+                  </div>
                 </div>
-                <div className="flex items-center text-[#4c4c4c]">
-                  <Users className="w-5 h-5 mr-2" />
-                  <span className="font-semibold">
-                    {participantCount} participants
-                  </span>
+
+                <div className="space-y-6 mb-10">
+                  <h3 className="text-lg font-black text-slate-700 flex items-center gap-2">
+                    <BarChart3 className="w-5 h-5 text-gritfeat-green" /> Live Response Feed
+                  </h3>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    {currentSession.options.map((option, idx) => {
+                      const votes = currentSession.results[option] || 0;
+                      const totalVotes = Object.values(currentSession.results).reduce((a, b) => a + b, 0);
+                      const percentage = totalVotes > 0 ? (votes / totalVotes) * 100 : 0;
+
+                      return (
+                        <div key={idx} className="bg-slate-100/50 rounded-2xl p-4 border border-white">
+                          <div className="flex justify-between items-center mb-2">
+                            <span className="font-bold text-slate-700">{option}</span>
+                            <span className="bg-white px-3 py-1 rounded-full text-xs font-black text-slate-600 shadow-sm border border-slate-100">{votes} Votes</span>
+                          </div>
+                          <div className="relative h-3 bg-white rounded-full overflow-hidden shadow-inner border border-slate-100">
+                            <div
+                              className="absolute inset-y-0 left-0 bg-gradient-to-r from-gritfeat-green to-gritfeat-green-light rounded-full transition-all duration-1000 ease-out"
+                              style={{ width: `${percentage}%` }}
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className="flex justify-center">
+                  <button
+                    onClick={endVoting}
+                    className="px-12 py-5 rounded-2xl bg-slate-800 text-white font-black hover:bg-slate-900 transition-all flex items-center gap-3 shadow-2xl shadow-slate-900/20 active:scale-95"
+                  >
+                    <Square className="w-5 h-5 fill-white" /> Complete Session
+                  </button>
                 </div>
               </div>
             </div>
-
-            {/* Active Stage */}
-            <div className="mb-12 animate-slide-up" style={{ animationDelay: '0.2s' }}>
-              {currentSession && currentSession.active ? (
-                <div className="glass-card p-8 border-l-8 border-gritfeat-green relative overflow-hidden">
-                  <div className="absolute top-0 right-0 p-12 text-gritfeat-green/5">
-                    <Play className="w-64 h-64 fill-current rotate-12" />
-                  </div>
-
-                  <div className="relative z-10">
-                    <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-8">
-                      <div className="text-center md:text-left">
-                        <div className="inline-block px-4 py-1.5 rounded-full bg-gritfeat-green text-white text-xs font-black uppercase tracking-widest mb-4 shadow-lg shadow-gritfeat-green/30">
-                          Now Live & Accepting Votes
-                        </div>
-                        <h2 className="text-4xl font-black text-slate-800 mb-2">{currentSession.title}</h2>
-                        <p className="text-slate-500 text-lg max-w-xl font-medium">{currentSession.description}</p>
-                      </div>
-
-                      <div className="flex flex-col items-center justify-center gap-1 bg-white shadow-xl rounded-3xl p-6 min-w-[180px] border border-slate-100">
-                        <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Time Lapsed</span>
-                        <span className="text-5xl font-black text-gritfeat-green font-mono tracking-tighter">
-                          {currentSession.startTime ? formatTime(Math.floor((Date.now() - currentSession.startTime) / 1000)) : "0:00"}
-                        </span>
-                        <div className="flex items-center gap-2 mt-2 text-slate-400 font-bold text-sm">
-                          <Users className="w-4 h-4" /> {participantCount} Active
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="space-y-6 mb-10">
-                      <h3 className="text-lg font-black text-slate-700 flex items-center gap-2">
-                        <BarChart3 className="w-5 h-5 text-gritfeat-green" /> Live Response Feed
-                      </h3>
-                      <div className="grid md:grid-cols-2 gap-4">
-                        {currentSession.options.map((option, idx) => {
-                          const votes = currentSession.results[option] || 0;
-                          const totalVotes = Object.values(currentSession.results).reduce((a, b) => a + b, 0);
-                          const percentage = totalVotes > 0 ? (votes / totalVotes) * 100 : 0;
-
-                          return (
-                            <div key={idx} className="bg-slate-100/50 rounded-2xl p-4 border border-white">
-                              <div className="flex justify-between items-center mb-2">
-                                <span className="font-bold text-slate-700">{option}</span>
-                                <span className="bg-white px-3 py-1 rounded-full text-xs font-black text-slate-600 shadow-sm border border-slate-100">{votes} Votes</span>
-                              </div>
-                              <div className="relative h-3 bg-white rounded-full overflow-hidden shadow-inner border border-slate-100">
-                                <div
-                                  className="absolute inset-y-0 left-0 bg-gradient-to-r from-gritfeat-green to-gritfeat-green-light rounded-full transition-all duration-1000 ease-out"
-                                  style={{ width: `${percentage}%` }}
-                                />
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-
-                    <div className="flex justify-center">
-                      <button
-                        onClick={endVoting}
-                        className="px-12 py-5 rounded-2xl bg-slate-800 text-white font-black hover:bg-slate-900 transition-all flex items-center gap-3 shadow-2xl shadow-slate-900/20 active:scale-95"
-                      >
-                        <Square className="w-5 h-5 fill-white" /> Complete Session
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="glass-card p-12 text-center border-2 border-dashed border-slate-200 bg-transparent flex flex-col items-center">
-                  <div className="w-20 h-20 bg-slate-100 rounded-3xl flex items-center justify-center mb-6 text-slate-300">
-                    <Play className="w-10 h-10 fill-current translate-x-1" />
-                  </div>
-                  <h3 className="text-2xl font-bold text-slate-400 mb-2">Stage is currently empty</h3>
-                  <p className="text-slate-400 max-w-sm font-medium">Select a category below to start a new live voting session for your participants.</p>
-                </div>
-              )}
+          ) : (
+            <div className="glass-card p-12 text-center border-2 border-dashed border-slate-200 bg-transparent flex flex-col items-center">
+              <div className="w-20 h-20 bg-slate-100 rounded-3xl flex items-center justify-center mb-6 text-slate-300">
+                <Play className="w-10 h-10 fill-current translate-x-1" />
+              </div>
+              <h3 className="text-2xl font-bold text-slate-400 mb-2">Stage is currently empty</h3>
+              <p className="text-slate-400 max-w-sm font-medium">Select a category below to start a new live voting session for your participants.</p>
             </div>
+          )}
+        </div>
 
-            {/* Results Reveal Section */}
-            <section className="mb-12 animate-slide-up" style={{ animationDelay: '0.3s' }}>
-              <ResultsReveal
-                categories={categories}
-                onRevealWinner={revealWinner}
-              />
-            </section>
+        {/* Results Reveal Section */}
+        <section className="mb-12 animate-slide-up" style={{ animationDelay: '0.3s' }}>
+          <ResultsReveal
+            categories={categories}
+            onRevealWinner={revealWinner}
+          />
+        </section>
 
-            {/* Categories Management Grid */}
-            <section className="animate-slide-up" style={{ animationDelay: '0.4s' }}>
-              <div className="flex items-center justify-between mb-8">
-                <h2 className="text-3xl font-black text-slate-800">All Categories</h2>
-                <div className="flex gap-2">
-                  <span className="px-4 py-1.5 bg-slate-100 rounded-full text-xs font-bold text-slate-500">{categories.length} Total</span>
-                  <span className="px-4 py-1.5 bg-gritfeat-green/10 rounded-full text-xs font-bold text-gritfeat-green">{categories.filter(c => c.completed).length} Done</span>
-                </div>
-              </div>
-
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {categories.map((category) => {
-                  const isActive = currentSession?.active && currentSession.categoryId === category.id;
-                  const canStart = !category.completed && !isActive && (!currentSession || !currentSession.active);
-
-                  return (
-                    <div key={category.id} className={`glass-card p-6 flex flex-col relative overflow-hidden group hover:border-gritfeat-green/30 ${category.completed ? 'opacity-80 grayscale-[0.05]' : ''}`}>
-                      <div className="flex items-start justify-between mb-4">
-                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${category.completed ? 'bg-gritfeat-green text-white' : 'bg-slate-100 text-slate-400'}`}>
-                          {category.completed ? <Check className="w-5 h-5" /> : <Play className="w-4 h-4 translate-x-0.5 fill-current" />}
-                        </div>
-                        <div className="text-xs font-black uppercase tracking-widest text-slate-400">
-                          {category.completed ? 'Archived' : isActive ? 'On Air' : 'Queued'}
-                        </div>
-                      </div>
-
-                      <h3 className="text-xl font-bold text-slate-800 mb-2">{category.title}</h3>
-                      <p className="text-sm text-slate-500 mb-6 flex-1 line-clamp-2 font-medium">{category.description}</p>
-
-                      <div className="pt-6 border-t border-slate-100">
-                        {canStart ? (
-                          <button
-                            onClick={() => startVoting(category.id)}
-                            className="w-full btn-primary py-3 active:scale-95"
-                          >
-                            Launch Now
-                          </button>
-                        ) : isActive ? (
-                          <div className="w-full py-3 bg-gritfeat-green/10 text-gritfeat-green font-black rounded-2xl flex items-center justify-center gap-2 animate-pulse">
-                            Live Stream Active
-                          </div>
-                        ) : (
-                          <div className="w-full py-3 bg-slate-50 text-slate-400 font-bold rounded-2xl flex items-center justify-center border border-slate-100">
-                            Category Completed
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </section>
-
-            {/* Instructions */}
-            <div className="mt-12 text-center text-slate-400 font-medium">
-              <p className="text-sm flex items-center justify-center gap-2">
-                <span className="w-2 h-2 bg-gritfeat-green rounded-full"></span>
-                Pro Tip: Share this admin screen on your projector to show live results to everyone!
-              </p>
+        {/* Categories Management Grid */}
+        <section className="animate-slide-up" style={{ animationDelay: '0.4s' }}>
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="text-3xl font-black text-slate-800">All Categories</h2>
+            <div className="flex gap-2">
+              <span className="px-4 py-1.5 bg-slate-100 rounded-full text-xs font-bold text-slate-500">{categories.length} Total</span>
+              <span className="px-4 py-1.5 bg-gritfeat-green/10 rounded-full text-xs font-bold text-gritfeat-green">{categories.filter(c => c.completed).length} Done</span>
             </div>
           </div>
-        )}
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {categories.map((category) => {
+              const isActive = currentSession?.active && currentSession.categoryId === category.id;
+              const canStart = !category.completed && !isActive && (!currentSession || !currentSession.active);
+
+              return (
+                <div key={category.id} className={`glass-card p-6 flex flex-col relative overflow-hidden group hover:border-gritfeat-green/30 ${category.completed ? 'opacity-80 grayscale-[0.05]' : ''}`}>
+                  <div className="flex items-start justify-between mb-4">
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${category.completed ? 'bg-gritfeat-green text-white' : 'bg-slate-100 text-slate-400'}`}>
+                      {category.completed ? <Check className="w-5 h-5" /> : <Play className="w-4 h-4 translate-x-0.5 fill-current" />}
+                    </div>
+                    <div className="text-xs font-black uppercase tracking-widest text-slate-400">
+                      {category.completed ? 'Archived' : isActive ? 'On Air' : 'Queued'}
+                    </div>
+                  </div>
+
+                  <h3 className="text-xl font-bold text-slate-800 mb-2">{category.title}</h3>
+                  <p className="text-sm text-slate-500 mb-6 flex-1 line-clamp-2 font-medium">{category.description}</p>
+
+                  <div className="pt-6 border-t border-slate-100">
+                    {canStart ? (
+                      <button
+                        onClick={() => startVoting(category.id)}
+                        className="w-full btn-primary py-3 active:scale-95"
+                      >
+                        Launch Now
+                      </button>
+                    ) : isActive ? (
+                      <div className="w-full py-3 bg-gritfeat-green/10 text-gritfeat-green font-black rounded-2xl flex items-center justify-center gap-2 animate-pulse">
+                        Live Stream Active
+                      </div>
+                    ) : (
+                      <div className="w-full py-3 bg-slate-50 text-slate-400 font-bold rounded-2xl flex items-center justify-center border border-slate-100">
+                        Category Completed
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* Instructions */}
+        <div className="mt-12 text-center text-slate-400 font-medium">
+          <p className="text-sm flex items-center justify-center gap-2">
+            <span className="w-2 h-2 bg-gritfeat-green rounded-full"></span>
+            Pro Tip: Share this admin screen on your projector to show live results to everyone!
+          </p>
+        </div>
       </div>
     </div>
   );
