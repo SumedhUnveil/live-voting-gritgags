@@ -919,11 +919,7 @@ function endVotingSession() {
     io.to("voting-room").emit("category-stopped", participantSession);
     io.to("admin-room").emit("category-stopped", currentVotingSession);
 
-    // Clear timer
-    if (votingTimer) {
-      clearTimeout(votingTimer);
-      votingTimer = null;
-    }
+
   }
 }
 
@@ -1172,10 +1168,7 @@ app.post("/api/reset", (req, res) => {
 
           // Reset current voting session and state
           currentVotingSession = null;
-          if (votingTimer) {
-            clearTimeout(votingTimer);
-            votingTimer = null;
-          }
+
           participants.clear();
           categories.clear();
           participantVotes.clear();
