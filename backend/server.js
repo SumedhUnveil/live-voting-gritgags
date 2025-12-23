@@ -63,11 +63,21 @@ function getLocalIpAddress() {
 
 const app = express();
 const server = http.createServer(app);
+
+// CORS configuration - Allow Vercel frontend
+const corsOptions = {
+  origin: [
+    'https://live-voting-gritgags.vercel.app',
+    'http://localhost:3000',
+    'http://localhost:5173',
+  ],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  credentials: true,
+  allowedHeaders: ['Content-Type', 'Authorization'],
+};
+
 const io = socketIo(server, {
-  cors: {
-    origin: "*",
-    methods: ["GET", "POST"],
-  },
+  cors: corsOptions,
   pingTimeout: 60000,
   pingInterval: 25000,
   transports: ["websocket", "polling"],
@@ -75,7 +85,7 @@ const io = socketIo(server, {
   maxHttpBufferSize: 1e8,
 });
 
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // Serve static frontend files
