@@ -66,14 +66,24 @@ const server = http.createServer(app);
 
 // CORS configuration - Allow Vercel frontend
 const corsOptions = {
-  origin: [
-    'https://live-voting-gritgags.vercel.app',
-    'http://localhost:3000',
-    'http://localhost:5173',
-  ],
+  origin: function (origin, callback) {
+    const allowedOrigins = [
+      'https://live-voting-gritgags.vercel.app',
+      'http://localhost:3000',
+      'http://localhost:5173',
+    ];
+    // allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) !== -1 || origin.endsWith('.vercel.app')) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   credentials: true,
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
+  optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
 };
 
 const io = socketIo(server, {
