@@ -17,7 +17,6 @@ export type {
 // Component prop types
 export type {
   ConfirmationModalProps,
-  ConfettiAnimationProps,
   VotingInterfaceProps,
   WaitingStateProps,
   CategoryControllerProps,
@@ -47,7 +46,6 @@ export type {
 export {
   WAITING_MESSAGES,
   ANIMATION_DURATIONS,
-  CONFETTI_CONFIG,
   SOCKET_EVENTS,
   CATEGORY_STATUS,
   SESSION_PHASES,

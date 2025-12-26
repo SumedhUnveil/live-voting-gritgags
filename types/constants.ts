@@ -28,21 +28,13 @@ export const ENHANCED_WAITING_MESSAGES = {
 
 // Animation durations (in milliseconds)
 export const ANIMATION_DURATIONS = {
-  confetti: 5000,
   fadeIn: 300,
   fadeOut: 200,
   slideIn: 400,
   slideOut: 300,
 } as const;
 
-// Confetti animation settings
-export const CONFETTI_CONFIG = {
-  particleCount: 100,
-  spread: 70,
-  origin: { y: 0.6 },
-  colors: ["#7ebd41", "#4c4c4c", "#FFD700", "#FF6B6B", "#4ECDC4"],
-  duration: 5000,
-} as const;
+
 
 // Socket event names for type safety
 export const SOCKET_EVENTS = {
@@ -129,3 +121,9 @@ export const MAX_CHART_RESULTS = 10;
 
 // Minimum vote count to show percentages
 export const MIN_VOTES_FOR_PERCENTAGES = 1;
+
+// Sound effect URLs
+export const SOUNDS = {
+  APPLAUSE: "/assets/clap.mp3",
+  SUCCESS: "/assets/sound-fx.mp3",
+} as const;

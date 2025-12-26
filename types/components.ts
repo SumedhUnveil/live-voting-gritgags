@@ -11,14 +11,7 @@ export interface ConfirmationModalProps {
   onCancel: () => void;
 }
 
-// Confetti Animation Component Props
-export interface ConfettiAnimationProps {
-  isActive: boolean;
-  duration?: number;
-  particleCount?: number;
-  colors?: readonly string[];
-  onComplete?: () => void;
-}
+
 
 // Voting Interface Component Props
 export interface VotingInterfaceProps {
@@ -34,10 +27,11 @@ export interface VotingInterfaceProps {
 // Waiting State Component Props
 export interface WaitingStateProps {
   state:
-    | "no-session"
-    | "between-categories"
-    | "session-complete"
-    | "waiting-for-results";
+  | "no-session"
+  | "between-categories"
+  | "session-complete"
+  | "waiting-for-results"
+  | "voted";
   participantCount?: number;
   nextCategoryTitle?: string;
   connectionStatus?: "connected" | "disconnected" | "reconnecting";

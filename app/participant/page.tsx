@@ -10,7 +10,6 @@ import WaitingState from "../components/WaitingState";
 import {
   getParticipantStateManager,
   ParticipantStateManager,
-  ParticipantStateDebug,
 } from "../utils/participantStateManager";
 import { getServerUrl } from "../utils/getServerUrl";
 import { getDeviceId } from "../utils/deviceId";
@@ -248,16 +247,10 @@ export default function ParticipantPage() {
     // Listen for vote confirmation
     newSocket.on("vote-confirmed", (data) => {
       safeLog("Vote confirmed:", data);
-      // Update voter state to show voted status
+      // Update voter state and record in history to prevent resets on status updates
       if (stateManager) {
-        stateManager.updateVoterState({
-          hasVoted: true,
-          selectedOption: data.option,
-          viewState: "voted",
-          currentCategoryId: data.categoryId,
-        });
+        stateManager.recordVote(data.categoryId, data.option);
       }
-      // Don't reset the timer - let it continue
     });
 
     // Listen for voting session updates
@@ -275,20 +268,6 @@ export default function ParticipantPage() {
       }
     });
 
-    newSocket.on("vote-received", (data) => {
-      // Vote was successfully received by server
-      safeLog("Vote received by server:", data?.option || "unknown option");
-
-      if (stateManager && votingSession) {
-        const success = stateManager.recordVote(
-          votingSession.categoryId,
-          data?.option || ""
-        );
-        if (!success) {
-          console.warn("Failed to record vote in state manager");
-        }
-      }
-    });
 
     newSocket.on("voting-ended", (session) => {
       safeLog("Received voting-ended:", session);
@@ -378,8 +357,12 @@ export default function ParticipantPage() {
 
   // Initialize participant ID, device ID, and state manager
   useEffect(() => {
-    // Generate unique participant ID
-    const id = Math.random().toString(36).substring(2, 11);
+    // Get or generate participant ID (persisted)
+    let id = localStorage.getItem('voting_participant_id');
+    if (!id) {
+      id = Math.random().toString(36).substring(2, 11);
+      localStorage.setItem('voting_participant_id', id);
+    }
     setParticipantId(id);
 
     // Get or generate device ID for vote tracking
@@ -562,6 +545,10 @@ export default function ParticipantPage() {
       return;
     }
 
+    // Update local state immediately for instant feedback
+    // This prevents the voting screen from showing briefly before the socket confirmation
+    stateManager.recordVote(votingSession.categoryId, pendingVote);
+
     socket.emit("submit-vote", {
       categoryId: votingSession.categoryId,
       option: pendingVote,
@@ -584,62 +571,50 @@ export default function ParticipantPage() {
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
-  // Filter options based on search query
+  // Filter and sort options based on search query
   const filteredOptions =
-    votingSession?.options?.filter((option) =>
-      option.toLowerCase().includes(searchQuery.toLowerCase())
-    ) || [];
+    votingSession?.options
+      ?.filter((option) =>
+        option.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+      ?.sort((a, b) => a.localeCompare(b)) || [];
 
   // Determine waiting state with enhanced logic
   const getWaitingState = () => {
-    // Debug logging
-    if (process.env.NODE_ENV === "development") {
-      safeLog("Waiting state check:", {
-        sessionComplete,
-        votingSession: votingSession
-          ? {
-            id: votingSession.id,
-            active: votingSession.active,
-            title: votingSession.title,
-          }
-          : null,
-        voterState: {
-          hasVoted: voterState.hasVoted,
-          viewState: voterState.viewState,
-        },
-      });
-    }
-
-    // Session is complete - all categories finished
-    if (sessionComplete) {
+    // 1. Session is complete - all categories finished
+    if (sessionComplete || voterState.viewState === "session-complete") {
       return "session-complete";
     }
 
-    // No active session - waiting for admin to start
+    // 2. No active session - waiting for admin to start
     if (!votingSession) {
       return "no-session";
     }
 
-    // Voting session exists but not active
-    if (!votingSession.active) {
-      // If user has voted, they're waiting for next category
-      if (voterState.hasVoted) {
+    // 3. User has voted for current category
+    const hasVotedForCurrentCategory =
+      stateManager?.hasVotedForCategory(votingSession.categoryId) ||
+      (voterState.hasVoted && voterState.currentCategoryId === votingSession.categoryId) ||
+      voterState.viewState === "voted";
+
+    if (hasVotedForCurrentCategory) {
+      // If user has voted, they're waiting
+      if (!votingSession.active) {
         return "between-categories";
       }
-      // If user hasn't voted and session ended, they're waiting for next category
+      return "voted";
+    }
+
+    // 4. Voting session exists but not active
+    if (!votingSession.active) {
       return "between-categories";
     }
 
-    // Active voting session - not a waiting state
+    // 5. Active voting session - not a waiting state
     return null;
   };
 
   const waitingState = getWaitingState();
-
-  // Check if user has voted for current category
-  const hasVotedForCurrentCategory =
-    voterState.hasVoted &&
-    voterState.currentCategoryId === votingSession?.categoryId;
 
   if (waitingState) {
     return (
@@ -655,82 +630,6 @@ export default function ParticipantPage() {
           connectionAttempts > 0
         }
       />
-    );
-  }
-
-  // Show voted state if user has voted for current category
-  if (hasVotedForCurrentCategory && votingSession?.active) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-2 sm:p-4">
-        <div className="max-w-2xl mx-auto">
-          {/* Logo */}
-          <div className="text-center mb-6">
-            <div className="flex justify-center mb-4">
-              <Image
-                src="/assets/gf-logo.svg"
-                alt="GritFeat Logo"
-                width={100}
-                height={40}
-                className="h-10 w-auto"
-              />
-            </div>
-          </div>
-
-          {/* Voted State */}
-          <div className="text-center">
-            <div className="bg-white rounded-lg p-6 sm:p-8 shadow-sm border border-gray-200 mb-6">
-              <div className="flex items-center justify-center text-green-500 mb-4">
-                <CheckCircle className="w-12 h-12" />
-              </div>
-              <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-2">
-                Vote Submitted!
-              </h2>
-              <p className="text-gray-600 mb-4">
-                You voted for:{" "}
-                <span className="font-semibold text-gray-800">
-                  {voterState.selectedOption}
-                </span>
-              </p>
-              <p className="text-sm text-gray-500">
-                Waiting for other participants to finish voting...
-              </p>
-            </div>
-
-            {/* Timer and Participant Count */}
-            <div className="flex flex-col sm:flex-row items-center justify-center space-y-2 sm:space-y-0 sm:space-x-4 text-sm mb-6">
-              <div className="flex items-center text-[#7ebd41] bg-green-50 px-3 py-1.5 rounded-full">
-                <Clock className="w-4 h-4 mr-1.5" />
-                <span className="font-mono font-bold text-base">
-                  {formatTime(timeLeft)}
-                </span>
-              </div>
-              <div className="flex items-center text-[#4c4c4c] bg-gray-50 px-3 py-1.5 rounded-full">
-                <Users className="w-4 h-4 mr-1.5" />
-                <span>
-                  {participantCount} participant
-                  {participantCount !== 1 ? "s" : ""}
-                </span>
-              </div>
-            </div>
-
-            {/* Connection Status */}
-            <div className="flex items-center justify-center">
-              <div
-                className={`flex items-center text-xs px-3 py-1.5 rounded-full transition-colors ${isConnected
-                  ? "bg-green-100 text-green-700"
-                  : "bg-red-100 text-red-700"
-                  }`}
-              >
-                <div
-                  className={`w-2 h-2 rounded-full mr-2 ${isConnected ? "bg-green-500" : "bg-red-500"
-                    }`}
-                ></div>
-                {isConnected ? "Connected" : "Disconnected"}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
     );
   }
 
@@ -799,27 +698,6 @@ export default function ParticipantPage() {
               Reconnect
             </button>
           )}
-
-          {/* Debug buttons in development */}
-          {process.env.NODE_ENV === "development" && stateManager && (
-            <>
-              <button
-                onClick={() => ParticipantStateDebug.logState(stateManager)}
-                className="text-xs bg-gray-500 text-white px-3 py-1.5 rounded-full hover:bg-gray-600 transition-colors touch-manipulation"
-              >
-                Debug
-              </button>
-              <button
-                onClick={() => {
-                  socket?.emit("request-voting-status");
-                  socket?.emit("request-admin-status");
-                }}
-                className="text-xs bg-purple-500 text-white px-3 py-1.5 rounded-full hover:bg-purple-600 transition-colors touch-manipulation"
-              >
-                Refresh
-              </button>
-            </>
-          )}
         </div>
 
         {/* Voting State Info */}
@@ -834,22 +712,6 @@ export default function ParticipantPage() {
             </div>
           )}
 
-        {/* Debug Info in development */}
-        {process.env.NODE_ENV === "development" && (
-          <div className="flex flex-col items-center justify-center mt-3 space-y-1">
-            <div className="text-xs px-3 py-1 rounded bg-yellow-100 text-yellow-800">
-              Session:{" "}
-              {votingSession
-                ? `${votingSession.active ? "ACTIVE" : "INACTIVE"} - ${votingSession.title
-                }`
-                : "NONE"}
-            </div>
-            <div className="text-xs px-3 py-1 rounded bg-gray-100 text-gray-600">
-              State: {voterState.viewState} | Voted:{" "}
-              {voterState.hasVoted ? "YES" : "NO"}
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Vote Validation Error */}
@@ -863,7 +725,7 @@ export default function ParticipantPage() {
 
       {/* Voting Options */}
       {votingSession.active && !voterState.hasVoted && (
-        <div className="space-y-3 sm:space-y-4 mb-6 sm:mb-8">
+        <div className="space-y-3 sm:space-y-4 mb-6 sm:mb-8 mx-24">
           <h2 className="text-lg sm:text-xl font-semibold text-[#4c4c4c] text-center mb-4 sm:mb-6 px-2">
             Choose your vote:
           </h2>
@@ -938,89 +800,6 @@ export default function ParticipantPage() {
         </div>
       )}
 
-      {/* Vote Confirmation - Active Session */}
-      {voterState.hasVoted && votingSession.active && (
-        <div className="text-center mb-6 sm:mb-8 px-3 sm:px-2">
-          <div className="w-12 h-12 sm:w-16 sm:h-16 bg-[#7ebd41]/10 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
-            <CheckCircle className="w-6 h-6 sm:w-8 sm:h-8 text-[#7ebd41]" />
-          </div>
-          <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-[#4c4c4c] mb-2">
-            Vote Submitted!
-          </h2>
-          <div className="bg-white rounded-xl p-3 sm:p-4 md:p-6 shadow-lg border border-gray-200 mb-3 sm:mb-4">
-            <p className="text-xs sm:text-sm text-gray-600 mb-2">
-              Your vote for
-            </p>
-            <p className="text-sm sm:text-base md:text-lg font-medium text-[#4c4c4c] mb-2 break-words">
-              {votingSession.title}
-            </p>
-            <p className="text-base sm:text-lg md:text-xl font-bold text-[#7ebd41] break-words">
-              {voterState.selectedOption}
-            </p>
-          </div>
-          <div className="bg-blue-50 rounded-lg p-3 border border-blue-200">
-            <p className="text-xs sm:text-sm text-blue-700 font-medium">
-              ✓ Vote recorded successfully
-            </p>
-            <p className="text-xs text-blue-600 mt-1">
-              Wait for the admin to begin the next category
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* Post-Vote Status for Ended Session */}
-      {voterState.hasVoted && !votingSession.active && (
-        <div className="text-center mb-6 sm:mb-8 px-3 sm:px-2">
-          <div className="w-12 h-12 sm:w-16 sm:h-16 bg-[#7ebd41]/10 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
-            <CheckCircle className="w-6 h-6 sm:w-8 sm:h-8 text-[#7ebd41]" />
-          </div>
-          <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-[#4c4c4c] mb-2">
-            Your Vote
-          </h2>
-          <div className="bg-white rounded-xl p-3 sm:p-4 md:p-6 shadow-lg border border-gray-200 mb-3 sm:mb-4">
-            <p className="text-xs sm:text-sm text-gray-600 mb-2">
-              You voted for
-            </p>
-            <p className="text-sm sm:text-base md:text-lg font-medium text-[#4c4c4c] mb-2 break-words">
-              {votingSession.title}
-            </p>
-            <p className="text-base sm:text-lg md:text-xl font-bold text-[#7ebd41] break-words">
-              {voterState.selectedOption}
-            </p>
-          </div>
-          <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-            <p className="text-xs sm:text-sm text-gray-600">
-              Waiting for next category to begin
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* Session Ended - No Vote Cast */}
-      {!votingSession.active && !voterState.hasVoted && (
-        <div className="text-center px-3 sm:px-2">
-          <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
-            <Vote className="w-6 h-6 sm:w-8 sm:h-8 text-gray-600" />
-          </div>
-          <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-[#4c4c4c] mb-2">
-            Category Ended
-          </h2>
-          <div className="bg-white rounded-xl p-3 sm:p-4 shadow-sm border border-gray-200 mb-3 sm:mb-4">
-            <p className="text-sm sm:text-base text-gray-600 mb-2">
-              Voting for this category has ended.
-            </p>
-            <p className="text-xs sm:text-sm text-gray-500">
-              You did not cast a vote for this category
-            </p>
-          </div>
-          <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-            <p className="text-xs sm:text-sm text-gray-600">
-              Wait for the admin to begin the next category
-            </p>
-          </div>
-        </div>
-      )}
 
       {/* Confirmation Modal */}
       <ConfirmationModal

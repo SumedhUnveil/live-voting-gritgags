@@ -165,40 +165,42 @@ function loadAwardsFromCSV() {
   const awards = [];
   const csvPath = path.join(__dirname, "../awards.csv");
 
-  console.log("CSV path:", csvPath);
-  console.log("CSV file exists:", fs.existsSync(csvPath));
-
   if (fs.existsSync(csvPath)) {
+    const fileContent = fs.readFileSync(csvPath, "utf-8");
+    const lines = fileContent.split(/\r?\n/);
+    if (lines.length === 0) return;
+
+    // Use the first line as the source of truth for participants
+    const headerLine = lines[0];
+
+    // Simple CSV split for the header (enough for this specific format)
+    const headers = headerLine.split(",").map(h => h.trim());
+    const allParticipants = headers.filter(
+      (h) => h !== "Award Title" && h !== "Description" && h !== ""
+    );
+
+    console.log(`Detected ${allParticipants.length} participants in CSV header.`);
+    console.log("Names:", allParticipants.join(", "));
+
+    // Use csv-parser for the data rows to handle quoted descriptions correctly
     fs.createReadStream(csvPath)
       .pipe(csv())
       .on("data", (row) => {
-        console.log("Processing CSV row:", row);
         const awardTitle = row["Award Title"];
         if (awardTitle && awardTitle.trim() !== "") {
-          // Extract participant names (all columns except 'Award Title' and 'Description')
-          const participants = Object.keys(row).filter(
-            (key) => key !== "Award Title" && key !== "Description"
-          );
-
-          console.log(
-            "Extracted participants for",
-            awardTitle,
-            ":",
-            participants
-          );
-
           awards.push({
             id: awardTitle.toLowerCase().replace(/[^a-z0-9]/g, "-"),
             title: awardTitle,
             description:
               row["Description"] ||
               `Vote for the team member who best fits this award!`,
-            options: participants,
+            options: allParticipants,
           });
         }
       })
       .on("end", () => {
-        console.log("Finished reading CSV. Total awards:", awards.length);
+        console.log(`Finished processing ${awards.length} awards from CSV.`);
+
         // Insert awards into database
         awards.forEach((award) => {
           db.run(
@@ -224,7 +226,7 @@ function loadAwardsFromCSV() {
           if (err) {
             console.error("Error counting categories:", err);
           } else {
-            console.log("Total categories in database:", rows[0].count);
+            console.log("Total categories in database:", rows[0] ? rows[0].count : 0);
           }
         });
       })
@@ -266,11 +268,7 @@ function loadAwardsFromCSV() {
         ],
         (err) => {
           if (err) {
-            console.error(
-              "Error inserting default category:",
-              category.title,
-              err
-            );
+            console.error("Error inserting default category:", category.title, err);
           } else {
             console.log("Inserted default category:", category.title);
           }

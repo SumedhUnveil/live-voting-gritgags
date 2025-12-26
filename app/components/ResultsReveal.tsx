@@ -3,7 +3,8 @@
 import { useState, useCallback } from "react";
 import { Trophy, Eye, EyeOff, Sparkles } from "lucide-react";
 import { CategoryResult, ResultsRevealProps } from "../../types";
-import ConfettiAnimation from "./ConfettiAnimation";
+import { SOUNDS } from "../../types/constants";
+import WinnerRevealModal from "./WinnerRevealModal";
 
 interface WinnerInfo {
   winner: string | string[];
@@ -19,7 +20,15 @@ export default function ResultsReveal({
   const [revealedCategories, setRevealedCategories] = useState<Set<string>>(
     new Set()
   );
-  const [showConfetti, setShowConfetti] = useState(false);
+  const [modalState, setModalState] = useState<{
+    isOpen: boolean;
+    categoryTitle: string;
+    winnerName: string | string[];
+  }>({
+    isOpen: false,
+    categoryTitle: "",
+    winnerName: "",
+  });
 
   // Calculate winner for a category
   const calculateWinner = useCallback(
@@ -65,25 +74,35 @@ export default function ResultsReveal({
     }));
   }, []);
 
-  // Handle reveal winner with confetti trigger
+  // Handle reveal winner
   const handleRevealWinner = useCallback(
-    (categoryId: string) => {
+    (categoryId: string, categoryTitle: string, results: Record<string, number>) => {
       setRevealedCategories(
         (prev) => new Set(Array.from(prev).concat(categoryId))
       );
 
-      // Trigger confetti animation
-      setShowConfetti(true);
+      const winnerInfo = calculateWinner(results);
+      if (winnerInfo) {
+        setModalState({
+          isOpen: true,
+          categoryTitle: categoryTitle,
+          winnerName: winnerInfo.winner,
+        });
+      }
+
+      // Play applause sound
+      try {
+        const audio = new Audio(SOUNDS.APPLAUSE);
+        audio.volume = 0.5;
+        audio.play().catch(err => console.log("Audio play blocked:", err));
+      } catch (err) {
+        console.error("Audio error:", err);
+      }
 
       onRevealWinner(categoryId);
     },
-    [onRevealWinner]
+    [onRevealWinner, calculateWinner]
   );
-
-  // Handle confetti animation completion
-  const handleConfettiComplete = useCallback(() => {
-    setShowConfetti(false);
-  }, []);
 
   // Filter completed categories
   const completedCategories = categories.filter((cat) => cat.completed);
@@ -107,197 +126,197 @@ export default function ResultsReveal({
   }
 
   return (
-    <div className="bg-white rounded-xl p-8 shadow-xl border-l-4 border-[#7ebd41] relative overflow-hidden">
-      <div className="text-center mb-8">
-        <div className="w-16 h-16 bg-[#7ebd41]/10 rounded-full flex items-center justify-center mx-auto mb-4">
-          <Trophy className="w-8 h-8 text-[#7ebd41]" />
+    <>
+      <div className="bg-white rounded-xl p-8 shadow-xl border-l-4 border-[#7ebd41] relative overflow-hidden">
+        <div className="text-center mb-8">
+          <div className="w-16 h-16 bg-[#7ebd41]/10 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Trophy className="w-8 h-8 text-[#7ebd41]" />
+          </div>
+          <h2 className="text-3xl font-bold text-[#4c4c4c] mb-2">
+            Results Reveal Center
+          </h2>
+          <p className="text-lg text-gray-600">
+            Reveal winners one by one to create suspense and excitement!
+          </p>
         </div>
-        <h2 className="text-3xl font-bold text-[#4c4c4c] mb-2">
-          Results Reveal Center
-        </h2>
-        <p className="text-lg text-gray-600">
-          Reveal winners one by one to create suspense and excitement!
-        </p>
-      </div>
 
-      {/* Results Grid */}
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {completedCategories.map((category) => {
-          const winnerInfo = category.results
-            ? calculateWinner(category.results)
-            : null;
-          const topResults = category.results
-            ? getTopResults(category.results)
-            : [];
-          const isRevealed =
-            category.revealed || revealedCategories.has(category.id);
+        {/* Results Grid */}
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {completedCategories.map((category) => {
+            const winnerInfo = category.results
+              ? calculateWinner(category.results)
+              : null;
+            const topResults = category.results
+              ? getTopResults(category.results)
+              : [];
+            const isRevealed =
+              category.revealed || revealedCategories.has(category.id);
 
-          return (
-            <div
-              key={category.id}
-              className={`rounded-lg p-6 border-2 transition-all duration-300 ${
-                isRevealed
+            return (
+              <div
+                key={category.id}
+                className={`rounded-lg p-6 border-2 transition-all duration-300 ${isRevealed
                   ? "bg-gradient-to-br from-[#7ebd41]/10 to-[#7ebd41]/5 border-[#7ebd41]/30"
                   : "bg-gray-50 border-gray-200 hover:border-[#7ebd41]/50"
-              }`}
-            >
-              {/* Category Header */}
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center space-x-2">
-                  <div
-                    className={`w-3 h-3 rounded-full ${
-                      isRevealed ? "bg-[#7ebd41]" : "bg-gray-400"
-                    }`}
-                  ></div>
-                  <span
-                    className={`text-xs font-semibold uppercase tracking-wide ${
-                      isRevealed ? "text-[#7ebd41]" : "text-gray-500"
-                    }`}
-                  >
-                    {isRevealed ? "Revealed" : "Ready to Reveal"}
-                  </span>
-                </div>
-                {winnerInfo && (
-                  <div className="text-sm text-gray-600">
-                    {winnerInfo.totalVotes} votes
+                  }`}
+              >
+                {/* Category Header */}
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center space-x-2">
+                    <div
+                      className={`w-3 h-3 rounded-full ${isRevealed ? "bg-[#7ebd41]" : "bg-gray-400"
+                        }`}
+                    ></div>
+                    <span
+                      className={`text-xs font-semibold uppercase tracking-wide ${isRevealed ? "text-[#7ebd41]" : "text-gray-500"
+                        }`}
+                    >
+                      {isRevealed ? "Revealed" : "Ready to Reveal"}
+                    </span>
                   </div>
-                )}
-              </div>
-
-              <h3 className="text-lg font-semibold text-[#4c4c4c] mb-2">
-                {category.title}
-              </h3>
-              <p className="text-gray-600 text-sm mb-4">
-                {category.description}
-              </p>
-
-              {/* Winner Display (only if revealed) */}
-              {isRevealed && winnerInfo && (
-                <div className="mb-4 p-4 bg-white rounded-lg border-2 border-[#7ebd41]/20">
-                  <div className="text-center">
-                    <div className="w-12 h-12 bg-[#7ebd41]/20 rounded-full flex items-center justify-center mx-auto mb-3">
-                      <Trophy className="w-6 h-6 text-[#7ebd41]" />
+                  {winnerInfo && (
+                    <div className="text-sm text-gray-600">
+                      {winnerInfo.totalVotes} votes
                     </div>
-                    <h4 className="text-lg font-bold text-[#4c4c4c] mb-1">
-                      {winnerInfo.isTie ? "It's a Tie!" : "Winner!"}
-                    </h4>
-                    <p className="text-xl font-semibold text-[#7ebd41] mb-2">
-                      {Array.isArray(winnerInfo.winner)
-                        ? winnerInfo.winner.join(" & ")
-                        : winnerInfo.winner}
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      {winnerInfo.votes} votes
-                      {winnerInfo.isTie && " each"}
-                    </p>
-                  </div>
+                  )}
                 </div>
-              )}
 
-              {/* Top Results (only if revealed) */}
-              {isRevealed && topResults.length > 0 && (
-                <div className="mb-4 p-3 bg-white rounded-lg border border-gray-200">
-                  <h4 className="text-sm font-semibold text-gray-700 mb-2">
-                    Final Results:
-                  </h4>
-                  <div className="space-y-2">
-                    {topResults.map((result, index) => {
-                      const medals = ["🥇", "🥈", "🥉"];
-                      return (
-                        <div
-                          key={result.name}
-                          className="flex justify-between items-center text-sm"
-                        >
-                          <div className="flex items-center space-x-2">
-                            <span>
-                              {medals[index] || `${result.position}.`}
-                            </span>
-                            <span className="font-medium text-gray-700">
-                              {result.name}
-                            </span>
-                          </div>
-                          <div className="text-right">
-                            <span className="font-semibold text-gray-600">
-                              {result.votes}
-                            </span>
-                            <span className="text-gray-500 text-xs ml-1">
-                              ({result.percentage.toFixed(1)}%)
-                            </span>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
+                <h3 className="text-lg font-semibold text-[#4c4c4c] mb-2">
+                  {category.title}
+                </h3>
+                <p className="text-gray-600 text-sm mb-4">
+                  {category.description}
+                </p>
 
-              {/* No Votes Message */}
-              {!winnerInfo && (
-                <div className="mb-4 p-3 bg-gray-100 rounded-lg text-center">
-                  <p className="text-sm text-gray-500">No votes cast</p>
-                </div>
-              )}
-
-              {/* Reveal Button */}
-              <div className="space-y-2">
-                {!isRevealed && winnerInfo ? (
-                  <button
-                    onClick={() => handleRevealWinner(category.id)}
-                    className="w-full bg-[#7ebd41] text-white py-3 px-4 rounded-lg font-semibold hover:bg-[#6ba835] transition-all duration-200 flex items-center justify-center space-x-2 transform hover:scale-105"
-                  >
-                    <Sparkles className="w-4 h-4" />
-                    <span>Reveal Winner</span>
-                  </button>
-                ) : !isRevealed && !winnerInfo ? (
-                  <div className="w-full bg-gray-300 text-gray-500 py-3 px-4 rounded-lg font-semibold flex items-center justify-center cursor-not-allowed">
-                    <EyeOff className="w-4 h-4 mr-2" />
-                    No Votes to Reveal
-                  </div>
-                ) : (
-                  <div className="w-full bg-[#7ebd41]/20 text-[#7ebd41] py-3 px-4 rounded-lg font-semibold flex items-center justify-center">
-                    <Eye className="w-4 h-4 mr-2" />
-                    Winner Revealed
+                {/* Winner Display (only if revealed) */}
+                {isRevealed && winnerInfo && (
+                  <div className="mb-4 p-4 bg-white rounded-lg border-2 border-[#7ebd41]/20">
+                    <div className="text-center">
+                      <div className="w-12 h-12 bg-[#7ebd41]/20 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <Trophy className="w-6 h-6 text-[#7ebd41]" />
+                      </div>
+                      <h4 className="text-lg font-bold text-[#4c4c4c] mb-1">
+                        {winnerInfo.isTie ? "It's a Tie!" : "Winner!"}
+                      </h4>
+                      <p className="text-xl font-semibold text-[#7ebd41] mb-2">
+                        {Array.isArray(winnerInfo.winner)
+                          ? winnerInfo.winner.join(" & ")
+                          : winnerInfo.winner}
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        {winnerInfo.votes} votes
+                        {winnerInfo.isTie && " each"}
+                      </p>
+                    </div>
                   </div>
                 )}
+
+                {/* Top Results (only if revealed) */}
+                {isRevealed && topResults.length > 0 && (
+                  <div className="mb-4 p-3 bg-white rounded-lg border border-gray-200">
+                    <h4 className="text-sm font-semibold text-gray-700 mb-2">
+                      Final Results:
+                    </h4>
+                    <div className="space-y-2">
+                      {topResults.map((result, index) => {
+                        const medals = ["🥇", "🥈", "🥉"];
+                        return (
+                          <div
+                            key={result.name}
+                            className="flex justify-between items-center text-sm"
+                          >
+                            <div className="flex items-center space-x-2">
+                              <span>
+                                {medals[index] || `${result.position}.`}
+                              </span>
+                              <span className="font-medium text-gray-700">
+                                {result.name}
+                              </span>
+                            </div>
+                            <div className="text-right">
+                              <span className="font-semibold text-gray-600">
+                                {result.votes}
+                              </span>
+                              <span className="text-gray-500 text-xs ml-1">
+                                ({result.percentage.toFixed(1)}%)
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* No Votes Message */}
+                {!winnerInfo && (
+                  <div className="mb-4 p-3 bg-gray-100 rounded-lg text-center">
+                    <p className="text-sm text-gray-500">No votes cast</p>
+                  </div>
+                )}
+
+                {/* Reveal Button */}
+                <div className="space-y-2">
+                  {!isRevealed && winnerInfo ? (
+                    <button
+                      onClick={() => handleRevealWinner(category.id, category.title, category.results || {})}
+                      className="w-full bg-[#7ebd41] text-white py-3 px-4 rounded-lg font-semibold hover:bg-[#6ba835] transition-all duration-200 flex items-center justify-center space-x-2 transform hover:scale-105"
+                    >
+                      <Sparkles className="w-4 h-4" />
+                      <span>Reveal Winner</span>
+                    </button>
+                  ) : !isRevealed && !winnerInfo ? (
+                    <div className="w-full bg-gray-300 text-gray-500 py-3 px-4 rounded-lg font-semibold flex items-center justify-center cursor-not-allowed">
+                      <EyeOff className="w-4 h-4 mr-2" />
+                      No Votes to Reveal
+                    </div>
+                  ) : (
+                    <div className="w-full bg-[#7ebd41]/20 text-[#7ebd41] py-3 px-4 rounded-lg font-semibold flex items-center justify-center">
+                      <Eye className="w-4 h-4 mr-2" />
+                      Winner Revealed
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Summary Stats */}
+        <div className="mt-8 p-4 bg-gray-50 rounded-lg">
+          <div className="flex items-center justify-between text-sm">
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center">
+                <div className="w-3 h-3 bg-[#7ebd41] rounded-full mr-2"></div>
+                <span className="text-[#7ebd41] font-semibold">
+                  {revealedCategories.size +
+                    categories.filter((cat) => cat.revealed).length}{" "}
+                  Revealed
+                </span>
+              </div>
+              <div className="flex items-center">
+                <div className="w-3 h-3 bg-gray-400 rounded-full mr-2"></div>
+                <span className="text-gray-600">
+                  {completedCategories.length -
+                    revealedCategories.size -
+                    categories.filter((cat) => cat.revealed).length}{" "}
+                  Pending
+                </span>
               </div>
             </div>
-          );
-        })}
-      </div>
-
-      {/* Summary Stats */}
-      <div className="mt-8 p-4 bg-gray-50 rounded-lg">
-        <div className="flex items-center justify-between text-sm">
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center">
-              <div className="w-3 h-3 bg-[#7ebd41] rounded-full mr-2"></div>
-              <span className="text-[#7ebd41] font-semibold">
-                {revealedCategories.size +
-                  categories.filter((cat) => cat.revealed).length}{" "}
-                Revealed
-              </span>
+            <div className="text-gray-500">
+              {completedCategories.length} Categories Complete
             </div>
-            <div className="flex items-center">
-              <div className="w-3 h-3 bg-gray-400 rounded-full mr-2"></div>
-              <span className="text-gray-600">
-                {completedCategories.length -
-                  revealedCategories.size -
-                  categories.filter((cat) => cat.revealed).length}{" "}
-                Pending
-              </span>
-            </div>
-          </div>
-          <div className="text-gray-500">
-            {completedCategories.length} Categories Complete
           </div>
         </div>
       </div>
 
-      {/* Confetti Animation */}
-      <ConfettiAnimation
-        isActive={showConfetti}
-        onComplete={handleConfettiComplete}
+      <WinnerRevealModal
+        isOpen={modalState.isOpen}
+        onClose={() => setModalState((prev) => ({ ...prev, isOpen: false }))}
+        categoryTitle={modalState.categoryTitle}
+        winnerName={modalState.winnerName}
       />
-    </div>
+    </>
   );
 }

@@ -2,23 +2,8 @@
  * @jest-environment jsdom
  */
 
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 import ResultsReveal from "../ResultsReveal";
-
-// Mock the ConfettiAnimation component
-jest.mock("../ConfettiAnimation", () => {
-  return function MockConfettiAnimation({ isActive, onComplete }: any) {
-    return (
-      <div data-testid="confetti-animation" data-active={isActive}>
-        {isActive && (
-          <button onClick={onComplete} data-testid="complete-confetti">
-            Complete Animation
-          </button>
-        )}
-      </div>
-    );
-  };
-});
 
 const mockCategories = [
   {
@@ -64,55 +49,6 @@ describe("ResultsReveal Integration", () => {
     expect(screen.getByText("Best Actor")).toBeInTheDocument();
     expect(screen.getByText("Best Director")).toBeInTheDocument();
     expect(screen.getAllByText("Reveal Winner")).toHaveLength(2);
-  });
-
-  it("triggers confetti animation when revealing winner", async () => {
-    render(
-      <ResultsReveal
-        categories={mockCategories}
-        onRevealWinner={mockOnRevealWinner}
-      />
-    );
-
-    const revealButtons = screen.getAllByText("Reveal Winner");
-
-    // Click the first reveal button
-    fireEvent.click(revealButtons[0]);
-
-    // Check that confetti animation is active
-    const confettiAnimation = screen.getByTestId("confetti-animation");
-    expect(confettiAnimation).toHaveAttribute("data-active", "true");
-
-    // Check that onRevealWinner was called
-    expect(mockOnRevealWinner).toHaveBeenCalledWith("category-1");
-  });
-
-  it("stops confetti animation when completed", async () => {
-    render(
-      <ResultsReveal
-        categories={mockCategories}
-        onRevealWinner={mockOnRevealWinner}
-      />
-    );
-
-    const revealButtons = screen.getAllByText("Reveal Winner");
-
-    // Click reveal button to start confetti
-    fireEvent.click(revealButtons[0]);
-
-    // Confetti should be active
-    let confettiAnimation = screen.getByTestId("confetti-animation");
-    expect(confettiAnimation).toHaveAttribute("data-active", "true");
-
-    // Complete the confetti animation
-    const completeButton = screen.getByTestId("complete-confetti");
-    fireEvent.click(completeButton);
-
-    // Wait for state update
-    await waitFor(() => {
-      confettiAnimation = screen.getByTestId("confetti-animation");
-      expect(confettiAnimation).toHaveAttribute("data-active", "false");
-    });
   });
 
   it("shows winner information after reveal", () => {

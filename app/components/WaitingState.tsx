@@ -72,6 +72,17 @@ export default function WaitingState({
           subtitle: "Results will be announced shortly",
         };
 
+      case "voted":
+        return {
+          icon: (
+            <CheckCircle className="w-8 h-8 sm:w-12 sm:h-12 text-[#7ebd41]" />
+          ),
+          title: "Vote Submitted!",
+          message: "Your vote has been recorded successfully.",
+          iconBg: "bg-[#7ebd41]/10",
+          subtitle: "Waiting for other participants to finish voting...",
+        };
+
       default:
         return {
           icon: <Vote className="w-8 h-8 sm:w-12 sm:h-12 text-[#7ebd41]" />,
@@ -182,18 +193,32 @@ export default function WaitingState({
               </div>
             </div>
           )}
+
+          {state === "voted" && (
+            <div className="bg-white rounded-lg p-3 sm:p-4 shadow-sm border border-gray-200">
+              <div className="flex items-center justify-center text-[#7ebd41] mb-2">
+                <Users className="w-4 h-4 mr-2" />
+                <span className="text-sm sm:text-base font-medium">
+                  {safeParticipantCount} participant
+                  {safeParticipantCount !== 1 ? "s" : ""} voting
+                </span>
+              </div>
+              <div className="text-xs sm:text-sm text-gray-500">
+                Stay tuned! Results will be shown soon.
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Connection Status */}
         <div className="flex items-center justify-center space-x-2 mb-4">
           <div
-            className={`flex items-center text-xs sm:text-sm px-3 py-1.5 rounded-full transition-colors ${
-              safeConnectionStatus === "connected"
+            className={`flex items-center text-xs sm:text-sm px-3 py-1.5 rounded-full transition-colors ${safeConnectionStatus === "connected"
                 ? "bg-green-100 text-green-700"
                 : safeConnectionStatus === "reconnecting" || safeIsReconnecting
-                ? "bg-yellow-100 text-yellow-700"
-                : "bg-red-100 text-red-700"
-            }`}
+                  ? "bg-yellow-100 text-yellow-700"
+                  : "bg-red-100 text-red-700"
+              }`}
           >
             {safeConnectionStatus === "connected" ? (
               <Wifi className="w-3 h-3 mr-1.5" />
@@ -204,8 +229,8 @@ export default function WaitingState({
               {safeConnectionStatus === "connected"
                 ? "Connected"
                 : safeConnectionStatus === "reconnecting" || safeIsReconnecting
-                ? "Reconnecting..."
-                : "Disconnected"}
+                  ? "Reconnecting..."
+                  : "Disconnected"}
             </span>
           </div>
         </div>

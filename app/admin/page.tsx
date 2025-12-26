@@ -10,6 +10,7 @@ import {
   AdminDashboardState,
   CategoryResult,
 } from "../../types";
+import { SOUNDS } from "../../types/constants";
 import { ResultsReveal, AdminLogin } from "../components";
 import { getServerUrl, getParticipantUrl, initializeServerUrl } from "../utils/getServerUrl";
 
@@ -65,15 +66,15 @@ export default function AdminPage() {
   useEffect(() => {
     const checkAuth = () => {
       if (typeof window === "undefined") return;
-      
+
       const authStatus = localStorage.getItem("admin_authenticated");
       const authTime = localStorage.getItem("admin_auth_time");
-      
+
       // Check if authenticated and session is valid (24 hours)
       if (authStatus === "true" && authTime) {
         const timeDiff = Date.now() - parseInt(authTime, 10);
         const hours24 = 24 * 60 * 60 * 1000;
-        
+
         if (timeDiff < hours24) {
           setIsAuthenticated(true);
         } else {
@@ -85,10 +86,10 @@ export default function AdminPage() {
       } else {
         setIsAuthenticated(false);
       }
-      
+
       setIsCheckingAuth(false);
     };
-    
+
     checkAuth();
   }, []);
 
@@ -105,7 +106,7 @@ export default function AdminPage() {
   // Create "Who wants to be a millionaire" question reveal sound
   const playQuestionReveal = () => {
     try {
-      const audio = new Audio("/assets/sound-fx.mp3");
+      const audio = new Audio(SOUNDS.SUCCESS);
       audio.volume = 0.7;
       audio.play().catch((error) => {
         console.log("Audio playback failed:", error);
@@ -212,6 +213,16 @@ export default function AdminPage() {
 
     newSocket.on("winner-revealed", (result: CategoryResult) => {
       setRevealedCategories((prev) => new Set([...prev, result.categoryId]));
+
+      // Play applause sound when a winner is revealed (triggered by sync)
+      try {
+        const audio = new Audio(SOUNDS.APPLAUSE);
+        audio.volume = 0.5;
+        audio.play().catch(err => console.log("Audio play blocked:", err));
+      } catch (err) {
+        console.error("Audio error:", err);
+      }
+
       // Refresh categories to update reveal status
       fetchCategories();
     });

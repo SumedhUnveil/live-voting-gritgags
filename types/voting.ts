@@ -45,11 +45,11 @@ export interface ConfirmationModalProps {
   isOpen: boolean;
 }
 
-// Animation state interface for confetti and other animations
+// Animation state interface for layout and other animations
 export interface AnimationState {
   isPlaying: boolean;
   duration: number;
-  type: "confetti" | "fade" | "slide";
+  type: "fade" | "slide";
   trigger?: "winner-reveal" | "vote-submit" | "category-start";
 }
 
