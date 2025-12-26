@@ -5,3 +5,4 @@ export { default as ConfettiDemo } from "./ConfettiDemo";
 export { default as ResultsReveal } from "./ResultsReveal";
 export { default as ErrorBoundary } from "./ErrorBoundary";
 export { default as WaitingState } from "./WaitingState";
+export { default as AdminLogin } from "./AdminLogin";

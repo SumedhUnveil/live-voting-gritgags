@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { Play, Square, Users, BarChart3, Clock, Trophy, Wifi, Copy, Check } from "lucide-react";
+import { Play, Square, Users, BarChart3, Clock, Trophy, Wifi, Copy, Check, LogOut } from "lucide-react";
 import { io, Socket } from "socket.io-client";
 import QRCode from "qrcode";
 import {
@@ -10,7 +10,7 @@ import {
   AdminDashboardState,
   CategoryResult,
 } from "../../types";
-import { ResultsReveal } from "../components";
+import { ResultsReveal, AdminLogin } from "../components";
 import { getServerUrl, getParticipantUrl, initializeServerUrl } from "../utils/getServerUrl";
 
 // Legacy interfaces for backward compatibility during transition
@@ -37,6 +37,8 @@ interface LegacyVotingSession {
 }
 
 export default function AdminPage() {
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState<boolean>(true);
   const [socket, setSocket] = useState<Socket | null>(null);
   const [categories, setCategories] = useState<LegacyCategory[]>([]);
   const [currentSession, setCurrentSession] =
@@ -58,6 +60,47 @@ export default function AdminPage() {
   const [participantUrl, setParticipantUrl] = useState<string>("");
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>("");
   const [copied, setCopied] = useState<boolean>(false);
+
+  // Check authentication on mount
+  useEffect(() => {
+    const checkAuth = () => {
+      if (typeof window === "undefined") return;
+      
+      const authStatus = localStorage.getItem("admin_authenticated");
+      const authTime = localStorage.getItem("admin_auth_time");
+      
+      // Check if authenticated and session is valid (24 hours)
+      if (authStatus === "true" && authTime) {
+        const timeDiff = Date.now() - parseInt(authTime, 10);
+        const hours24 = 24 * 60 * 60 * 1000;
+        
+        if (timeDiff < hours24) {
+          setIsAuthenticated(true);
+        } else {
+          // Session expired, clear auth
+          localStorage.removeItem("admin_authenticated");
+          localStorage.removeItem("admin_auth_time");
+          setIsAuthenticated(false);
+        }
+      } else {
+        setIsAuthenticated(false);
+      }
+      
+      setIsCheckingAuth(false);
+    };
+    
+    checkAuth();
+  }, []);
+
+  const handleLogin = () => {
+    setIsAuthenticated(true);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("admin_authenticated");
+    localStorage.removeItem("admin_auth_time");
+    setIsAuthenticated(false);
+  };
 
   // Create "Who wants to be a millionaire" question reveal sound
   const playQuestionReveal = () => {
@@ -448,11 +491,36 @@ export default function AdminPage() {
     }
   };
 
+  // Show loading state while checking authentication
+  if (isCheckingAuth) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-gritfeat-green border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-slate-600 font-medium">Checking authentication...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show login if not authenticated
+  if (!isAuthenticated) {
+    return <AdminLogin onLogin={handleLogin} />;
+  }
+
   return (
     <div className="min-h-screen pb-10">
       <div className="max-w-7xl mx-auto px-4 pt-8">
         {/* Header */}
-        <header className="text-center mb-12 animate-slide-up">
+        <header className="text-center mb-12 animate-slide-up relative">
+          <button
+            onClick={handleLogout}
+            className="absolute top-0 right-0 btn-secondary py-2 px-4 flex items-center gap-2 text-sm"
+            title="Logout"
+          >
+            <LogOut className="w-4 h-4" />
+            <span className="hidden sm:inline">Logout</span>
+          </button>
           <div className="inline-block p-3 rounded-2xl bg-white shadow-xl mb-6 border border-white/50">
             <Trophy className="w-10 h-10 text-gritfeat-green animate-float" />
           </div>
